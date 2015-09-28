@@ -23,6 +23,7 @@ public:
         eff_FAN,
         eff_FIRE,
         eff_FIREWORKS,
+		eff_FOUNTAIN,
         eff_GALAXY,
         eff_GARLANDS,
         eff_GLEDIATOR,

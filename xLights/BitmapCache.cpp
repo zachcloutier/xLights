@@ -65,6 +65,8 @@
 #include "../include/fireworks-48.xpm"
 #include "../include/fireworks-64.xpm"
 
+#include "../include/fountain-16.xpm"
+
 //#include "../include/garlands.xpm"
 #include "../include/garlands-16.xpm"
 #include "../include/garlands-24.xpm"
@@ -500,6 +502,9 @@ const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int 
         case BitmapCache::eff_FIREWORKS:
             toolTip = "Fireworks";
             return effectBitmaps.get(size, exact, "Fireworks", fireworks_16, fireworks_24, fireworks_32, fireworks_48, fireworks_64);
+        case BitmapCache::eff_FOUNTAIN:
+            toolTip = "Fountain";
+            return effectBitmaps.get(size, exact, "Fountain", fountain_16);
         case BitmapCache::eff_GALAXY:
             toolTip = "Galaxy";
             return effectBitmaps.get(size, exact, "Galaxy", galaxy_16, galaxy_24, galaxy_32, galaxy_48, galaxy_64);

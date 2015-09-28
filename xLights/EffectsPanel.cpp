@@ -835,6 +835,21 @@ const long EffectsPanel::ID_BITMAPBUTTON_CHOICEBOOK1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON87 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON88 = wxNewId();
+
+//---------------------------------------------------
+//Fountain Effect Panel
+//---------------------------------------------------
+const long EffectsPanel::ID_STATICTEXT118 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT107 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT110 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT120 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Fountain_Height = wxNewId();
+const long EffectsPanel::ID_SLIDER_Number_Particles = wxNewId();
+const long EffectsPanel::ID_SLIDER_Spray_Rate = wxNewId();
+const long EffectsPanel::ID_SLIDER_Spray_Angle = wxNewId();
+const long EffectsPanel::ID_PANEL48 = wxNewId();
+
+
 //*)
 
 BEGIN_EVENT_TABLE(EffectsPanel,wxPanel)
@@ -4269,6 +4284,51 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Wave->SetSizer(FlexGridSizer51);
     FlexGridSizer51->Fit(Panel1_Wave);
     FlexGridSizer51->SetSizeHints(Panel1_Wave);
+
+    //---------------------------------------------------
+    //Fountain Effect Panel
+    //---------------------------------------------------
+    Panel1_Fountain = new wxScrolledWindow(EffectChoicebook, ID_PANEL48, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL48"));
+    FlexGridSizer73 = new wxFlexGridSizer(4, 2, 0, 0);
+    FlexGridSizer73->AddGrowableCol(1);
+
+    //FOUNTAIN HEIGHT
+    StaticText96 = new wxStaticText(Panel1_Fountain, ID_STATICTEXT118, _("Fountain Height"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT118"));
+    FlexGridSizer73->Add(StaticText96, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+
+    wxSlider* Slider_Fountain_Height;
+    Slider_Fountain_Height = new wxSlider(Panel1_Fountain, ID_SLIDER_Fountain_Height, 5, 1, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fountain_Height"));
+    FlexGridSizer73->Add(Slider_Fountain_Height, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+
+    //Number of Particles
+    StaticText97 = new wxStaticText(Panel1_Fountain, ID_STATICTEXT107, _("Number of Particles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT107"));
+    FlexGridSizer73->Add(StaticText97, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+
+    wxSlider* SLIDER_Number_Particles;
+    SLIDER_Number_Particles = new wxSlider(Panel1_Fountain, ID_SLIDER_Number_Particles, 10, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Number_Particles"));
+    FlexGridSizer73->Add(SLIDER_Number_Particles, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+
+    //Spray Rate
+    StaticText101 = new wxStaticText(Panel1_Fountain, ID_STATICTEXT110, _("Spray Rate"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT110"));
+    FlexGridSizer73->Add(StaticText101, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+
+    wxSlider* SLIDER_Spray_Rate;
+    SLIDER_Spray_Rate = new wxSlider(Panel1_Fountain, ID_SLIDER_Spray_Rate, 6, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Spray_Rate"));
+    FlexGridSizer73->Add(SLIDER_Spray_Rate, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+
+    //Spray Angle
+    StaticText105 = new wxStaticText(Panel1_Fountain, ID_STATICTEXT120, _("Spray Angle"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT120"));
+    FlexGridSizer73->Add(StaticText105, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+
+    wxSlider* SLIDER_Spray_Angle;
+    SLIDER_Spray_Angle = new wxSlider(Panel1_Fountain, ID_SLIDER_Spray_Angle, 6, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Spray_Angle"));
+    FlexGridSizer73->Add(SLIDER_Spray_Angle, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+
+    Panel1_Fountain->SetSizer(FlexGridSizer73);
+    FlexGridSizer73->Fit(Panel1_Fountain);
+    FlexGridSizer73->SetSizeHints(Panel1_Fountain);
+    //---------------------------------------------------
+
     EffectChoicebook->AddPage(Panel1_Off, _("Off"), false);
     EffectChoicebook->AddPage(Panel1_On, _("On"), false);
     EffectChoicebook->AddPage(Panel1_Bars, _("Bars"), false);
@@ -4280,6 +4340,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     EffectChoicebook->AddPage(Panel1_Fan, _("Fan"), false);
     EffectChoicebook->AddPage(Panel1_Fire, _("Fire"), false);
     EffectChoicebook->AddPage(Panel1_Fireworks, _("Fireworks"), false);
+    EffectChoicebook->AddPage(Panel1_Fountain, _("Fountain"), false);
     EffectChoicebook->AddPage(Panel1_Galaxy, _("Galaxy"), false);
     EffectChoicebook->AddPage(Panel1_Garlands, _("Garlands"), false);
     EffectChoicebook->AddPage(Panel1_Glediator, _("Glediator"), false);

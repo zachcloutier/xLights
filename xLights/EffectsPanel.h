@@ -44,7 +44,7 @@ public:
     wxString GetRandomEffectString(int effidx);
     void SetButtonColor(wxButton* btn, const wxColour* c);
     wxString GetEffectStringFromWindow(wxWindow *ParentWin);
-    
+
     void SetSequenceElements(SequenceElements *els) {mSequenceElements = els;}
 
     //(*Declarations(EffectsPanel)
@@ -1394,6 +1394,28 @@ protected:
     static const long ID_BITMAPBUTTON87;
     static const long ID_BITMAPBUTTON1;
     static const long ID_BITMAPBUTTON88;
+
+    //---------------------------------------------------
+    //Fountain Effect Panel
+    //---------------------------------------------------
+    wxScrolledWindow* Panel1_Fountain;
+    static const long ID_STATICTEXT118;
+    static const long ID_STATICTEXT107;
+    static const long ID_STATICTEXT110;
+    static const long ID_STATICTEXT120;
+
+    wxStaticText* StaticText96;
+    wxStaticText* StaticText97;
+    wxStaticText* StaticText101;
+    wxStaticText* StaticText105;
+
+    static const long ID_SLIDER_Fountain_Height;
+    static const long ID_SLIDER_Number_Particles;
+    static const long ID_SLIDER_Spray_Rate;
+    static const long ID_SLIDER_Spray_Angle;
+
+    static const long ID_PANEL48;
+
     //*)
 
 

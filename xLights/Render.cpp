@@ -112,7 +112,7 @@ public:
     }
     SNPair(const SNPair &p) : strand(p.strand), node(p.node) {
     }
-    
+
     bool operator>(const SNPair &p) const {
         return strand > p.strand
         || (strand == p.strand && node > p.node);
@@ -124,7 +124,7 @@ public:
     bool operator==(const SNPair &p) const {
         return strand == p.strand && node == p.node;
     }
-    
+
     const int strand;
     const int node;
 };
@@ -921,6 +921,11 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                wxAtoi(SettingsMap["SLIDER_Fireworks_Count"]),
                                wxAtoi(SettingsMap["SLIDER_Fireworks_Velocity"]),
                                wxAtoi(SettingsMap["SLIDER_Fireworks_Fade"]));
+    } else if (effect == "Fountain") {
+        buffer.RenderFountain(wxAtoi(SettingsMap["SLIDER_Fountain_Height"]),
+                              wxAtoi(SettingsMap["SLIDER_Number_Particles"]),
+                              wxAtoi(SettingsMap["SLIDER_Spray_Rate"]),
+                              wxAtoi(SettingsMap["SLIDER_Spray_Angle"]));
     } else if (effect == "Galaxy") {
         buffer.RenderGalaxy(wxAtoi(SettingsMap["SLIDER_Galaxy_CenterX"]),
                             wxAtoi(SettingsMap["SLIDER_Galaxy_CenterY"]),

@@ -342,7 +342,7 @@ Effect::Effect(EffectLayer* parent,int id, int effectIndex, const wxString & nam
         mStartTime = mEndTime;
         mEndTime = tmp;
     }
-    
+
     if (effectIndex == BitmapCache::eff_FACES
         && mSettings.Get("E_CHOICE_Faces_FaceDefinition", "") == ""
         && mSettings.Get("E_CHOICE_Faces_TimingTrack", "") == "") {
@@ -545,6 +545,7 @@ public:
         at(BitmapCache::eff_FAN) = "Fan";
         at(BitmapCache::eff_FIRE) = "Fire";
         at(BitmapCache::eff_FIREWORKS) = "Fireworks";
+        at(BitmapCache::eff_FOUNTAIN) = "Fountain";
         at(BitmapCache::eff_GALAXY) = "Galaxy";
         at(BitmapCache::eff_GARLANDS) = "Garlands";
         at(BitmapCache::eff_GLEDIATOR) = "Glediator";
