@@ -8,6 +8,9 @@ Issue Tracker is found here: https://github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 --------------------------------
+   -- enh (keithsw) Add writing of FPP universes file when saving networks
+   -- enh (keithsw) Move convert tab into a dialog
+   -- bug (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log found typically in c:\users\<user>\AppData\Roaming
 2016.17  Apr 3, 2016
    -- bug (dkulp) Fix text effect on Windows
    -- bug (dkulp) Fix single lines that are 1 channel/string with multiple lights
