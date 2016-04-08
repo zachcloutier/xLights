@@ -11,6 +11,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keithsw) Add writing of FPP universes file when saving networks
    -- enh (keithsw) Move convert tab into a dialog
    -- bug (keithsw) Fix logging on windows ... log file is named xlights_l4cpp.log found typically in c:\users\<user>\AppData\Roaming
+   -- bug (gil)   Fix bug when Papagayo timing was collapsed and selected grid cell selection wasn't working.
    -- bug (gil)   Fix Delete key operation so it doesn't do a Cut unless Shift is pressed.
 2016.17  Apr 3, 2016
    -- bug (dkulp) Fix text effect on Windows
