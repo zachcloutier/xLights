@@ -732,6 +732,9 @@
     <ClCompile Include="ConvertDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ConvertLogDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1377,6 +1380,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CustomModelDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConvertLogDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

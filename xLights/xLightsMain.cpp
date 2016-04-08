@@ -1424,7 +1424,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     if (!xLightsApp::sequenceFile.IsNull())
     {
-        OpenSequence(xLightsApp::sequenceFile);
+        OpenSequence(xLightsApp::sequenceFile, NULL);
     }
 
 	SetAudioControls();
@@ -2252,7 +2252,7 @@ void xLightsFrame::OnAuiToolBarItem_ZoomOutClick(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event)
 {
-    OpenSequence("");
+    OpenSequence("", NULL);
 }
 
 void xLightsFrame::OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event)
