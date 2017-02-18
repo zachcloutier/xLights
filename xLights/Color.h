@@ -37,12 +37,18 @@ public:
     double lightness;
 };
 
+#pragma pack(push, 1)
 class xlColor {
 public:
-    uint8_t red;
-    uint8_t green;
-    uint8_t blue;
-    uint8_t alpha;
+    union {
+        uint32_t rgba;
+        struct {
+            uint8_t red;
+            uint8_t green;
+            uint8_t blue;
+            uint8_t alpha;
+        };
+    };
 
     xlColor() {
         red = green = blue = 0;
@@ -107,6 +113,13 @@ public:
         green = g;
         blue = b;
         alpha = a;
+    }
+    void SetViaRGBA(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255) {
+        uint32_t v = a << 24;
+        v += b << 16;
+        v += g << 8;
+        v += r;
+        rgba = v;
     }
     bool operator==(const xlColor &rgb) const {
         return (red == rgb.red)
@@ -176,6 +189,7 @@ public:
         SetFromString(str);
     }
 };
+#pragma pack(pop)
 
 static const xlColor xlBLUE(0, 0, 255);
 static const xlColor xlRED(255, 0, 0);

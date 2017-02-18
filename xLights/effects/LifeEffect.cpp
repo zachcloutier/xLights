@@ -106,7 +106,7 @@ void LifeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     long TempState=effectState % 400 / 20;
     if (TempState == cache->LastLifeState)
     {
-        buffer.pixels=buffer.tempbuf;
+        buffer.CopyTempBufferToPixels();
         return;
     }
     else
@@ -192,5 +192,5 @@ void LifeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         }
     }
     // copy new life state to tempbuf
-    buffer.tempbuf=buffer.pixels;
+    buffer.CopyPixelsToTempBuffer();
 }

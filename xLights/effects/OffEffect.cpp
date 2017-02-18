@@ -20,11 +20,13 @@ wxPanel *OffEffect::CreatePanel(wxWindow *parent) {
 }
 
 void OffEffect::Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) {
-    int x,y;
+    const size_t maxh = buffer.BufferHt;
+    const size_t maxw = buffer.BufferWi;
     //  Every Node, every frame set to BLACK
-    for (x = 0; x < buffer.BufferWi; x++) {
-        for (y = 0; y < buffer.BufferHt; y++) {
-            buffer.SetPixel(x, y, xlBLACK);
+    for (size_t x = 0; x < maxw; x++) {
+        for (size_t y = 0; y < maxh; y++) {
+            size_t idx = y * maxw + x;
+            buffer.pixels[idx].rgba = 0xFF000000;
         }
     }
 }

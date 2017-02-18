@@ -75,11 +75,7 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, boo
     image = new wxImage(BufferWi > 0 ? BufferWi : 1, BufferHt > 0 ? BufferHt : 1);
     if (alpha) {
         image->SetAlpha();
-        for(wxCoord x=0; x<BufferWi; x++) {
-            for(wxCoord y=0; y<BufferHt; y++) {
-                image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);
-            }
-        }
+        memset(image->GetAlpha(), wxIMAGE_ALPHA_TRANSPARENT, BufferWi * BufferHt);
     }
     bitmap = new wxBitmap(*image);
     dc = new wxMemoryDC(*bitmap);
@@ -407,7 +403,7 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
     }
     BufferHt=newBufferHt;
     BufferWi=newBufferWi;
-    int NumPixels=BufferHt * BufferWi;
+    size_t NumPixels=BufferHt * BufferWi;
     pixels.resize(NumPixels);
     tempbuf.resize(NumPixels);
     isTransformed = (bufferTransform != "None");
@@ -443,63 +439,27 @@ double RenderBuffer::rand01()
 }
 
 
-class SinTable {
-public:
-    static constexpr float precision = 300.0f; // gradations per Pi, 942 entries of size float is under 4K or less than a memory page
-    static constexpr int modulus = (int)(M_PI * precision) + 1;
-    static constexpr int modulus2 = modulus * 2;
+SinTable::SinTable() {
+    for (int i = 0; i<modulus; i++) {
+        float f = i;
+        f /= precision;
+        table[i]=sinf(f);
+    }
 
-    SinTable() {
-        for (int i = 0; i<modulus; i++) {
-            float f = i;
-            f /= precision;
-            table[i]=sinf(f);
-        }
-        /*
-        for (int x = -720; x <= 720; x++) {
-            float s = ((float)x)*3.14159f/180.0f;
-            printf("%d:\t%f\t%f\n", x, this->cos(s), cosf(s));
-        }
-         */
+    /*
+    for (int x = 0; x < (precision * 3); x++) {
+        float rad = x * M_PI / precision;
+        
+        float st = std::sin(rad);
+        float nw = this->sin(rad);
+        float df = (st - nw);
+        printf("%f      %f  %f      %f\n", rad, st, nw, df);
     }
-    ~SinTable() {
-    }
-    float table[modulus]; // lookup table
-
-    float sinLookup(int a) {
-        if (a >= 0) {
-            int idx = a%(modulus2);
-            if (idx >= modulus) {
-                idx -= modulus;
-                return -table[idx];
-            }
-            return table[idx];
-        }
-        int idx = -a%(modulus2);
-        if (idx >= modulus) {
-            idx -= modulus;
-            return table[idx];
-        }
-        return -table[idx];
-    }
-    float sin(float rad) {
-        float idx = rad * precision + 0.5f;
-        return sinLookup((int)idx);
-    }
-    float cos(float a) {
-        return this->sin(a + M_PI_2);
-    }
-};
-static SinTable sinTable;
-
-float RenderBuffer::sin(float rad)
-{
-    return sinTable.sin(rad);
+    */
 }
-float RenderBuffer::cos(float rad)
-{
-    return sinTable.cos(rad);
-}
+
+SinTable SinTable::SINGLETON;
+
 
 // generates a random number between num1 and num2 inclusive
 double RenderBuffer::RandomRange(double num1, double num2)
@@ -582,29 +542,6 @@ void RenderBuffer::GetMultiColorBlend(float n, bool circular, xlColor &color)
     Get2ColorBlend(coloridx1,coloridx2,ratio,color);
 }
 
-
-// 0,0 is lower left
-void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap)
-{
-    if (wrap) {
-        while (x < 0) {
-            x += BufferWi;
-        }
-        while (y < 0) {
-            y += BufferHt;
-        }
-        while (x > BufferWi) {
-            x -= BufferWi;
-        }
-        while (y > BufferHt) {
-            y -= BufferHt;
-        }
-    }
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
-    {
-        pixels[y*BufferWi+x] = color;
-    }
-}
 
 void RenderBuffer::ProcessPixel(int x_pos, int y_pos, const xlColor &color, bool wrap_x)
 {
@@ -832,6 +769,26 @@ const xlColor &RenderBuffer::GetPixel(int x, int y) {
     }
     return xlBLACK;
 }
+void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap) {
+    if (wrap) {
+        while (x < 0) {
+            x += BufferWi;
+        }
+        while (y < 0) {
+            y += BufferHt;
+        }
+        while (x > BufferWi) {
+            x -= BufferWi;
+        }
+        while (y > BufferHt) {
+            y -= BufferHt;
+        }
+    }
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt) {
+        pixels[y*BufferWi+x] = color;
+    }
+}
+
 
 // 0,0 is lower left
 void RenderBuffer::SetTempPixel(int x, int y, const xlColor &color)
@@ -863,6 +820,12 @@ const xlColor &RenderBuffer::GetTempPixel(int x, int y) {
         return tempbuf[y*BufferWi+x];
     }
     return xlBLACK;
+}
+void RenderBuffer::CopyTempBufferToPixels() {
+    pixels = tempbuf;
+}
+void RenderBuffer::CopyPixelsToTempBuffer() {
+    tempbuf = pixels;
 }
 
 
@@ -1002,7 +965,6 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer)
 {
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
-
     pixels = buffer.pixels;
     textDrawingContext = NULL;
     pathDrawingContext = NULL;

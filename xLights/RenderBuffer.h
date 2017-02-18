@@ -142,7 +142,7 @@ private:
     hsvVector hsv;
     xlColorCurveVector cc;
     const ColorCurve nilcc;
-
+    size_t colorCnt;
 public:
 
     void UpdateForProgress(float progress)
@@ -165,6 +165,12 @@ public:
 
         cc = newcc;
         color=newcolors;
+        colorCnt = newcolors.size();
+        if (colorCnt < 1) {
+            colorCnt = 1;
+            color.push_back(xlWHITE);
+            cc.push_back(nilcc);
+        }
         hsv.clear();
         for(size_t i=0; i<newcolors.size(); i++)
         {
@@ -172,29 +178,25 @@ public:
         }
     }
 
-    size_t Size()
-    {
-        size_t colorcnt=color.size();
-        if (colorcnt < 1) colorcnt=1;
-        return colorcnt;
+    size_t Size() {
+        return colorCnt;
     }
 
-    const ColorCurve& GetColorCurve(size_t idx) const
-    {
-        if (idx >= cc.size()) {
+    const ColorCurve& GetColorCurve(size_t idx) const {
+        if (idx >= colorCnt) {
             return nilcc;
         }
         return cc[idx];
     }
-    const xlColor &GetColor(size_t idx) {
-        if (idx >= color.size()) {
+    const xlColor &GetColor(size_t idx) const {
+        if (idx >= colorCnt) {
             return xlWHITE;
         }
 
-            return color[idx];
+        return color[idx];
     }
-    const xlColor GetColor(size_t idx, float progress) {
-        if (idx >= color.size()) {
+    const xlColor GetColor(size_t idx, float progress) const {
+        if (idx >= colorCnt) {
             return xlWHITE;
         }
 
@@ -204,21 +206,17 @@ public:
         }
         return color[idx];
     }
-    void GetColor(size_t idx, xlColor& c)
-    {
-        if (idx >= color.size())
-        {
+    void GetColor(size_t idx, xlColor& c) const {
+        if (idx >= colorCnt) {
             c.Set(255, 255, 255);
-        }
-        else
-        {
-                c = color[idx];
+        } else {
+            c = color[idx];
         }
     }
 
     bool IsSpatial(size_t idx) const
     {
-        if (idx >= color.size()) return false;
+        if (idx >= colorCnt) return false;
         return (cc[idx].IsActive() && cc[idx].GetTimeCurve() != TC_TIME);
     }
 
@@ -245,7 +243,7 @@ public:
 
     void GetSpatialColor(size_t idx, float xcentre, float ycentre, float x, float y, float round, float maxradius, xlColor& c) const
     {
-        if (idx >= color.size())
+        if (idx >= colorCnt)
         {
             c.Set(255, 255, 255);
         }
@@ -281,7 +279,7 @@ public:
 
     void GetSpatialColor(size_t idx, float x, float y, xlColor& c) const
     {
-        if (idx >= color.size())
+        if (idx >= colorCnt)
         {
             c.Set(255, 255, 255);
         }
@@ -316,24 +314,16 @@ public:
     }
     void GetColor(size_t idx, xlColor& c, float progress) const
     {
-        if (idx >= color.size())
-        {
+        if (idx >= colorCnt) {
             c.Set(255, 255, 255);
-        }
-        else
-        {
-            if (cc[idx].IsActive())
-            {
-                c = cc[idx].GetValueAt(progress);
-            }
-            else
-            {
-                c = color[idx];
-            }
+        } else if (cc[idx].IsActive()) {
+            c = cc[idx].GetValueAt(progress);
+        } else {
+            c = color[idx];
         }
     }
 
-    void GetHSV(size_t idx, HSVValue& c)
+    void GetHSV(size_t idx, HSVValue& c) const
     {
         if (hsv.size() == 0)
         {
@@ -344,10 +334,10 @@ public:
         }
         else
         {
-                c = hsv[idx % hsv.size()];
+            c = hsv[idx % hsv.size()];
         }
     }
-    void GetHSV(size_t idx, HSVValue& c, float progress)
+    void GetHSV(size_t idx, HSVValue& c, float progress) const
     {
         if (hsv.size() == 0)
         {
@@ -376,6 +366,40 @@ public:
 	virtual ~EffectRenderCache();
 };
 
+//aproximation of sin/cos, but much faster
+
+class SinTable {
+public:
+    static constexpr float precision = 300.0f; // gradations per Pi, 942 entries of size float is under 4K or less than a memory page
+    static constexpr int modulus = (int)(M_PI * precision) + 1;
+    static constexpr int modulus2 = modulus * 2;
+    
+    SinTable();
+    ~SinTable() {};
+    
+    float sinLookup(int a) {
+        int sign = a >= 0 ? 1 : -1;
+        int idx = sign * a%(modulus2);
+        float sign2 = sign;
+        if (idx >= modulus) {
+            sign2 = -sign;
+            idx -= modulus;
+        }
+        return sign2 * table[idx];
+    }
+    float sin(float rad) {
+        float idx = rad * precision + 0.5f;
+        return sinLookup((int)idx);
+    }
+    float cos(float a) {
+        return this->sin(a + M_PI_2);
+    }
+    
+    static SinTable SINGLETON;
+private:
+    float table[modulus]; // lookup table
+};
+
 class /*NCCDLLEXPORT*/ RenderBuffer {
 public:
     RenderBuffer(xLightsFrame *frame, bool onlyOnMain);
@@ -397,7 +421,12 @@ public:
 
     const xlColor &GetPixel(int x, int y);
     void GetPixel(int x, int y, xlColor &color);
-    void SetPixel(int x, int y, const xlColor &color, bool wrap = false);
+    void SetPixel(int x, int y, const xlColor &color) {
+        if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt) {
+            pixels[y*BufferWi+x] = color;
+        }
+    }
+    void SetPixel(int x, int y, const xlColor &color, bool wrap);
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
     void CopyPixel(int srcx, int srcy, int destx, int desty);
     void ProcessPixel(int x, int y, const xlColor &color, bool wrap_x);
@@ -408,6 +437,8 @@ public:
     void SetTempPixel(int x, int y, const xlColor &color);
     void GetTempPixel(int x, int y, xlColor &color);
     const xlColor &GetTempPixel(int x, int y);
+    void CopyTempBufferToPixels();
+    void CopyPixelsToTempBuffer();
 
     void DrawHLine(int y, int xstart, int xend, const xlColor& color, bool wrap = false);
     void DrawVLine(int x, int ystart, int yend, const xlColor& color, bool wrap = false);
@@ -417,9 +448,10 @@ public:
     void DrawLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color );
     void DrawThickLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool direction );
 
-    //aproximation of sin/cos, but much faster
-    static float sin(float rad);
-    static float cos(float rad);
+
+    
+    static float sin(float rad) { return SinTable::SINGLETON.sin(rad); }
+    static float cos(float rad) { return SinTable::SINGLETON.cos(rad); };
 
     double rand01();
     double calcAccel(double ratio, double accel);
