@@ -51,13 +51,13 @@ public:
 
 class SelectedEffectChangedEvent : public wxCommandEvent {
 public:
-    SelectedEffectChangedEvent(Effect *e, bool n, bool uui = true, bool ubtn = false)
+    SelectedEffectChangedEvent(Effect *e, EffectLayer* el, bool n, bool uui = true, bool ubtn = false)
         : wxCommandEvent(EVT_SELECTED_EFFECT_CHANGED),
-            effect(e), isNew(n), updateUI(uui), updateBtn(ubtn) {
+            effect(e), effectLayer(el), isNew(n), updateUI(uui), updateBtn(ubtn) {
 
     }
     SelectedEffectChangedEvent(const SelectedEffectChangedEvent &evt)
-    : wxCommandEvent(evt), effect(evt.effect), isNew(evt.isNew), updateUI(evt.updateUI), updateBtn(evt.updateBtn) {
+    : wxCommandEvent(evt), effect(evt.effect), effectLayer(evt.effectLayer), isNew(evt.isNew), updateUI(evt.updateUI), updateBtn(evt.updateBtn) {
     }
 
     virtual ~SelectedEffectChangedEvent() {}
@@ -65,6 +65,7 @@ public:
 
 
     Effect *effect;
+    EffectLayer* effectLayer;
     bool isNew;
     bool updateUI;
     bool updateBtn;
@@ -73,8 +74,7 @@ public:
 
 protected:
     SelectedEffectChangedEvent()
-        : wxCommandEvent(EVT_SELECTED_EFFECT_CHANGED), effect(nullptr), isNew(true), updateUI(true) {}
-
+        : wxCommandEvent(EVT_SELECTED_EFFECT_CHANGED), effect(nullptr), effectLayer(nullptr), isNew(true), updateUI(true) {}
 };
 
 

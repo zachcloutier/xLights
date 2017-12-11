@@ -5660,7 +5660,7 @@ void EffectsGrid::RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool up
         return;
     }
     // Place effect pointer in client data
-    SelectedEffectChangedEvent eventEffectChanged(effect, isNew, updateUI);
+    SelectedEffectChangedEvent eventEffectChanged(effect, effect->GetParentEffectLayer(), isNew, updateUI);
     wxPostEvent(GetParent(), eventEffectChanged);
 }
 
@@ -5670,6 +5670,7 @@ void EffectsGrid::RaisePlayModelEffect(Element* element, Effect* effect,bool ren
     wxCommandEvent eventPlayModelEffect(EVT_PLAY_MODEL_EFFECT);
     playArgs->element = element;
     playArgs->effect = effect;
+    playArgs->effectLayer = effect->GetParentEffectLayer();
     playArgs->renderEffect = renderEffect;
     eventPlayModelEffect.SetClientData(playArgs);
     wxPostEvent(GetParent(), eventPlayModelEffect);

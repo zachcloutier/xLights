@@ -770,7 +770,11 @@ void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
 
 void xLightsFrame::EffectChanged(wxCommandEvent& event)
 {
-    Effect* effect = (Effect*)event.GetClientData();
+    EventEffectArgs* args = (EventEffectArgs*)event.GetClientData();
+    std::unique_lock<std::recursive_mutex> locker(args->effectLayer->GetLock());
+    if (!args->effectLayer->ValidateEffect(args->effect)) return;
+
+    Effect* effect = args->effect;
     SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
                       effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
                       true);
@@ -797,6 +801,9 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
     }
     else
     {
+        // lock the effect layer so the effect doesnt get deleted under us
+        std::unique_lock<std::recursive_mutex> locker(event.effectLayer->GetLock());
+        if (!event.effectLayer->ValidateEffect(event.effect)) return;
         effect = event.effect;
 		bool resetStrings = false;
         if ("Random" == effect->GetEffectName()) {
@@ -1428,6 +1435,9 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
     if( playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
     {
         EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();
+        // lock the effect layer so it cant be deleted under us
+        std::unique_lock<std::recursive_mutex> locker(args->effectLayer->GetLock());
+        if (!args->effectLayer->ValidateEffect(args->effect)) return;
         playModel = GetModel(args->element->GetModelName());
         if (playModel != nullptr) {
             playType = PLAY_TYPE_EFFECT;
@@ -1534,6 +1544,10 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
     Effect* eff = selectedEffect;
 
     if (eff != nullptr && timingPanel->BitmapButton_CheckBox_LayerMorph->IsEnabled()) {
+
+        // Lock the effect layer so the effect cant be deleted from under us
+        std::unique_lock<std::recursive_mutex> locker(eff->GetParentEffectLayer()->GetLock());
+
         std::string palette;
         std::string effectText = GetEffectTextFromWindows(palette);
         if (effectText != selectedEffectString

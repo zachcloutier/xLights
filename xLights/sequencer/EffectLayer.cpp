@@ -170,6 +170,22 @@ bool EffectLayer::IsEndTimeLinked(int index)
     }
 }
 
+bool EffectLayer::ValidateEffect(Effect* effect)
+{
+    // Validate that this effect layer contains this effect
+    for (auto it = mEffects.begin(); it != mEffects.end(); ++it)
+    {
+        if (effect == *it) return true;
+    }
+
+    // this should be almost impossible ... it implies the effect has been deleted after the pointer was captured
+    // before I implemented this check it would have crashed. I have only placed this assert here so I can see them
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Crash avoided ... an effect pointer was found to be invalid.");
+    wxASSERT(false);
+    return false;
+}
+
 int EffectLayer::GetMaximumEndTimeMS(int index, bool allow_collapse, int min_period)
 {
     if(index+1 >= mEffects.size())

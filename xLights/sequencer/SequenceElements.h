@@ -46,7 +46,14 @@ struct EventPlayEffectArgs
 {
     Element* element;
     Effect* effect;
+    EffectLayer* effectLayer;
     bool renderEffect;
+};
+
+struct EventEffectArgs
+{
+    Effect* effect;
+    EffectLayer* effectLayer;
 };
 
 class wxXmlNode;

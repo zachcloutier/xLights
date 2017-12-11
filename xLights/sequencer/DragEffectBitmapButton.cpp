@@ -55,7 +55,7 @@ void DragEffectBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
     int id = mEffect->GetId();
     
     // Change the Choicebook to correct page
-    SelectedEffectChangedEvent eventEffectChanged(nullptr, false, true);
+    SelectedEffectChangedEvent eventEffectChanged(nullptr, nullptr, false, true);
     // We are only changing choicebook not populating effect panel with settings
     eventEffectChanged.SetInt(id);
     wxPostEvent(GetParent(), eventEffectChanged);

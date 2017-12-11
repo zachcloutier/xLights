@@ -3,14 +3,15 @@
 #include "../../DrawGLUtils.h"
 
 #include "../../ValueCurveButton.h"
+#include "sequencer/SequenceElements.h"
 
 BEGIN_EVENT_TABLE(xlGridCanvasMorph, xlGridCanvas)
-EVT_PAINT(xlGridCanvasMorph::render)
-EVT_MOTION(xlGridCanvasMorph::mouseMoved)
-EVT_LEFT_DOWN(xlGridCanvasMorph::mouseLeftDown)
-EVT_LEFT_UP(xlGridCanvasMorph::mouseLeftUp)
-EVT_RIGHT_DOWN(xlGridCanvasMorph::mouseRightDown)
-EVT_RIGHT_UP(xlGridCanvasMorph::mouseRightUp)
+    EVT_PAINT(xlGridCanvasMorph::render)
+    EVT_MOTION(xlGridCanvasMorph::mouseMoved)
+    EVT_LEFT_DOWN(xlGridCanvasMorph::mouseLeftDown)
+    EVT_LEFT_UP(xlGridCanvasMorph::mouseLeftUp)
+    EVT_RIGHT_DOWN(xlGridCanvasMorph::mouseRightDown)
+    EVT_RIGHT_UP(xlGridCanvasMorph::mouseRightUp)
 END_EVENT_TABLE()
 
 #define CORNER_NOT_SELECTED     0
@@ -315,7 +316,10 @@ void xlGridCanvasMorph::StoreUpdatedMorphPositions()
     wxPostEvent(GetParent(), eventVCChange);
 
     wxCommandEvent eventEffectChanged(EVT_EFFECT_CHANGED);
-    eventEffectChanged.SetClientData(mEffect);
+    EventEffectArgs* args = new EventEffectArgs();
+    args->effect = mEffect;
+    args->effectLayer = mEffect->GetParentEffectLayer();
+    eventEffectChanged.SetClientData(args);
     wxPostEvent(GetParent(), eventEffectChanged);
 }
 

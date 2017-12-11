@@ -5,6 +5,7 @@
 #include <wx/filename.h>
 
 #include "../../ResizeImageDialog.h"
+#include "sequencer/SequenceElements.h"
 
 //static const wxString strSupportedImageTypes = "PNG files (*.png)|*.png|BMP files (*.bmp)|*.bmp|JPG files(*.jpg)|*.jpg|All files (*.*)|*.*";
 static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif|All files (*.*)|*.*";
@@ -314,7 +315,10 @@ void xlGridCanvasPictures::UpdateRenderedImage()
     mEffect->SetSettings(settings.ToStdString(), false);
 
     wxCommandEvent eventEffectChanged(EVT_EFFECT_CHANGED);
-    eventEffectChanged.SetClientData(mEffect);
+    EventEffectArgs* args = new EventEffectArgs();
+    args->effect = mEffect;
+    args->effectLayer = mEffect->GetParentEffectLayer();
+    eventEffectChanged.SetClientData(args);
     wxPostEvent(mMessageParent, eventEffectChanged);
 }
 

@@ -38,6 +38,7 @@ class EffectLayer
         bool IsEndTimeLinked(int index);
         bool IsEffectStartTimeInRange(int index, int startTimeMS, int endTimeMS);
         bool IsEffectEndTimeInRange(int index, int startTimeMS, int endTimeMS);
+        bool ValidateEffect(Effect* effect);
 
         int GetMaximumEndTimeMS(int index, bool allow_collapse, int min_period);
         int GetMinimumStartTimeMS(int index, bool allow_collapse, int min_period);
