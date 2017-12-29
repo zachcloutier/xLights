@@ -4,14 +4,14 @@
 #include <wx/dnd.h>
 
 //(*Headers(ModelGroupPanel)
-#include <wx/listctrl.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/checkbox.h>
-#include <wx/spinctrl.h>
-#include <wx/panel.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
+#include <wx/spinctrl.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/listctrl.h>
+#include <wx/panel.h>
+#include <wx/stattext.h>
+#include <wx/choice.h>
 //*)
 
 class ModelManager;
@@ -43,23 +43,23 @@ class ModelGroupPanel: public wxPanel
 		void AddPreviewChoice(const std::string name);
 
 		//(*Declarations(ModelGroupPanel)
-		wxBitmapButton* ButtonAddModel;
-		wxBitmapButton* ButtonRemoveModel;
+		wxListCtrl* ListBoxModelsInGroup;
 		wxListCtrl* ListBoxAddToModelGroup;
-		wxBitmapButton* ButtonMoveDown;
+		wxChoice* ChoicePreviews;
+		wxBitmapButton* ButtonAddModel;
+		wxStaticText* StaticText1;
+		wxFlexGridSizer* Panel_Sizer;
+		wxChoice* ChoiceModelLayoutType;
+		wxStaticText* StaticText3;
+		wxCheckBox* CheckBox_ShowSubmodels;
+		wxStaticText* GridSizeLabel;
+		wxStaticText* LabelModelGroupName;
+		wxBitmapButton* ButtonRemoveModel;
+		wxStaticText* StaticText5;
 		wxStaticText* StaticText2;
 		wxBitmapButton* ButtonMoveUp;
-		wxChoice* ChoiceModelLayoutType;
-		wxChoice* ChoicePreviews;
-		wxStaticText* LabelModelGroupName;
-		wxListCtrl* ListBoxModelsInGroup;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
-		wxFlexGridSizer* Panel_Sizer;
-		wxStaticText* GridSizeLabel;
 		wxSpinCtrl* SizeSpinCtrl;
-		wxStaticText* StaticText5;
-		wxCheckBox* CheckBox_ShowSubmodels;
+		wxBitmapButton* ButtonMoveDown;
 		//*)
 
 	protected:

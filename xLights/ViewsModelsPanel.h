@@ -4,13 +4,13 @@
 #include <wx/dnd.h>
 
 //(*Headers(ViewsModelsPanel)
-#include <wx/listctrl.h>
-#include <wx/scrolwin.h>
 #include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/splitter.h>
-#include <wx/panel.h>
+#include <wx/listctrl.h>
 #include <wx/button.h>
+#include <wx/panel.h>
+#include <wx/scrolwin.h>
+#include <wx/splitter.h>
+#include <wx/stattext.h>
 //*)
 
 #include "wxCheckedListCtrl.h"
@@ -116,30 +116,30 @@ class ViewsModelsPanel: public wxPanel
         void UpdateModelsForSelectedView();
 
 		//(*Declarations(ViewsModelsPanel)
-		wxButton* Button_AddAll;
-		wxButton* Button_MoveUp;
-		wxListCtrl* ListCtrlNonModels;
-		wxFlexGridSizer* MainSizer;
-		wxButton* Button_AddSelected;
-		wxStaticText* StaticText2;
-		wxPanel* Panel_Sizer;
-		wxPanel* Panel1;
-		wxStaticText* StaticText1;
-		wxCheckedListCtrl* ListCtrlModels;
-		wxStaticText* StaticText3;
-		wxButton* Button_MakeMaster;
-		wxButton* Button_AddView;
 		wxFlexGridSizer* ScrollWindowSizer;
-		wxButton* Button_DeleteView;
 		wxCheckedListCtrl* ListCtrlViews;
-		wxButton* Button_RemoveAll;
-		wxScrolledWindow* ScrolledWindowViewsModels;
-		wxButton* ButtonClone;
-		wxButton* ButtonRename;
-		wxPanel* Panel2;
+		wxPanel* Panel1;
+		wxButton* Button_AddView;
+		wxButton* Button_DeleteView;
 		wxButton* Button_MoveDown;
-		wxButton* Button_RemoveSelected;
+		wxScrolledWindow* ScrolledWindowViewsModels;
+		wxButton* Button_AddAll;
+		wxButton* Button_MakeMaster;
+		wxListCtrl* ListCtrlNonModels;
+		wxPanel* Panel_Sizer;
+		wxStaticText* StaticText1;
+		wxPanel* Panel2;
 		wxSplitterWindow* SplitterWindow1;
+		wxButton* Button_RemoveSelected;
+		wxStaticText* StaticText3;
+		wxButton* Button_AddSelected;
+		wxButton* ButtonRename;
+		wxButton* ButtonClone;
+		wxStaticText* StaticText2;
+		wxCheckedListCtrl* ListCtrlModels;
+		wxButton* Button_RemoveAll;
+		wxFlexGridSizer* MainSizer;
+		wxButton* Button_MoveUp;
 		//*)
 
 	protected:

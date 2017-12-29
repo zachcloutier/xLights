@@ -1,11 +1,11 @@
 #include "ModelGroupPanel.h"
 
 //(*InternalHeaders(ModelGroupPanel)
-#include <wx/artprov.h>
-#include <wx/bitmap.h>
-#include <wx/intl.h>
-#include <wx/image.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/artprov.h>
 //*)
 
 #include "xLightsMain.h"
@@ -97,12 +97,12 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 :   layoutPanel(xl), mModels(Models)
 {
 	//(*Initialize(ModelGroupPanel)
+	wxFlexGridSizer* FlexGridSizer11;
+	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer3;
+	wxStaticText* StaticText4;
 	wxStaticText* StaticText6;
 	wxFlexGridSizer* FlexGridSizer12;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer11;
-	wxStaticText* StaticText4;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	Panel_Sizer = new wxFlexGridSizer(0, 1, 0, 0);
