@@ -1,15 +1,15 @@
 #include "LayoutPanel.h"
 
 //(*InternalHeaders(LayoutPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
 #include <wx/checkbox.h>
-#include <wx/splitter.h>
-#include <wx/font.h>
-#include <wx/choice.h>
-#include <wx/intl.h>
+#include <wx/sizer.h>
 #include <wx/button.h>
 #include <wx/string.h>
+#include <wx/splitter.h>
+#include <wx/intl.h>
+#include <wx/font.h>
+#include <wx/stattext.h>
+#include <wx/choice.h>
 #include <wx/filedlg.h>
 #include <wx/prntbase.h>
 //*)
@@ -214,11 +214,11 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     appearanceVisible = sizeVisible = stringPropsVisible = false;
 
 	//(*Initialize(LayoutPanel)
-	wxFlexGridSizer* LeftPanelSizer;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* PreviewGLSizer;
 	wxFlexGridSizer* FlexGridSizerPreview;
-	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* LeftPanelSizer;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizerPreview = new wxFlexGridSizer(1, 1, 0, 0);
@@ -610,6 +610,8 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
                 xlights->MarkEffectsFileDirty(true);
             }
+        } else if ("SubModels" == name) {
+            // skip submodel changes for now
         } else {
             int i = selectedModel->OnPropertyGridChange(propertyEditor, event);
             if (i & 0x0001) {
@@ -648,6 +650,8 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
                 CreateUndoPoint("ModelName", selectedModel->name, safename);
                 event.Veto();
             }
+        } else if ("SubModels" == name) {
+            // ignore the submodel changes for now.
         } else {
             CreateUndoPoint("ModelProperty", selectedModel->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
             selectedModel->OnPropertyGridChanging(propertyEditor, event);
@@ -1047,7 +1051,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
 
 void LayoutPanel::BulkEditDimmingCurves()
 {
-    // get the first dimming curve    
+    // get the first dimming curve
     ModelDimmingCurveDialog dlg(this);
     std::map<std::string, std::map<std::string, std::string>> dimmingInfo;
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)

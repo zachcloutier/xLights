@@ -3,13 +3,13 @@
 
 //(*Headers(LayoutPanel)
 #include <wx/panel.h>
-class wxSplitterWindow;
-class wxCheckBox;
-class wxSplitterEvent;
-class wxStaticText;
+class wxChoice;
 class wxFlexGridSizer;
 class wxButton;
-class wxChoice;
+class wxSplitterWindow;
+class wxSplitterEvent;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 #include "wxCheckedListCtrl.h"
@@ -67,17 +67,17 @@ class LayoutPanel: public wxPanel
 
     private:
 		//(*Declarations(LayoutPanel)
-		wxFlexGridSizer* ToolSizer;
-		wxChoice* ChoiceLayoutGroups;
-		wxPanel* FirstPanel;
-		wxSplitterWindow* SplitterWindow2;
-		wxPanel* LeftPanel;
-		wxStaticText* StaticText1;
 		wxCheckBox* CheckBoxOverlap;
-		wxPanel* SecondPanel;
+		wxFlexGridSizer* ToolSizer;
+		wxStaticText* StaticText1;
 		wxButton* ButtonSavePreview;
-		wxSplitterWindow* ModelSplitter;
+		wxSplitterWindow* SplitterWindow2;
+		wxChoice* ChoiceLayoutGroups;
+		wxPanel* SecondPanel;
 		wxPanel* PreviewGLPanel;
+		wxPanel* FirstPanel;
+		wxPanel* LeftPanel;
+		wxSplitterWindow* ModelSplitter;
 		//*)
 
 		wxScrolledWindow* ModelGroupWindow;
