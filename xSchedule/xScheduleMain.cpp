@@ -2431,12 +2431,18 @@ void xScheduleFrame::DoAction(wxCommandEvent& event)
 
 void xScheduleFrame::UpdateUI()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("UpdateUI start");
+
     StaticText_PacketsPerSec->SetLabel(wxString::Format("Packets/Sec: %d", __schedule->GetPPS()));
 
+    logger_base.debug("    Update status");
     UpdateStatus();
 
     Brightness->SetValue(__schedule->GetBrightness());
 
+    logger_base.debug("    Web toggle");
     if (__schedule->GetWebRequestToggle())
     {
         if (!_webIconDisplayed)
@@ -2454,6 +2460,7 @@ void xScheduleFrame::UpdateUI()
         }
     }
 
+    logger_base.debug("    Output to lights");
     if (!_suspendOTL)
     {
         if (!__schedule->GetOptions()->IsSendOffWhenNotRunning() && __schedule->GetManualOutputToLights() == -1)
@@ -2489,6 +2496,7 @@ void xScheduleFrame::UpdateUI()
             __schedule->SetOutputToLights(this, false, false);
     }
 
+    logger_base.debug("    Menus");
     if (__schedule->GetMode() == SYNCMODE::FPPMASTER)
     {
         MenuItem_FPPMaster->Check(true);
@@ -2598,6 +2606,7 @@ void xScheduleFrame::UpdateUI()
         MenuItem_ARTNetTimeCodeSlave->Check(false);
     }
 
+    logger_base.debug("    Ping");
     if (_pinger != nullptr)
     {
         auto pingresults = _pinger->GetPingers();
@@ -2668,9 +2677,12 @@ void xScheduleFrame::UpdateUI()
         }
     }
 
+    logger_base.debug("    Validate");
     ValidateWindow();
 
     Refresh();
+
+    logger_base.debug("    Done!");
 }
 
 void xScheduleFrame::OnMenuItem_BackgroundPlaylistSelected(wxCommandEvent& event)
