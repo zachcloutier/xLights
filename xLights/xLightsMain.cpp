@@ -2934,10 +2934,7 @@ void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
 
 wxString xLightsFrame::GetSeqXmlFileName()
 {
-    if (CurrentSeqXmlFile == nullptr)
-    {
-        return "";
-    }
+    if (CurrentSeqXmlFile == nullptr) return "";
 
     return CurrentSeqXmlFile->GetFullPath();
 }
@@ -3313,6 +3310,8 @@ void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemRenderEraseModeSelected(wxCommandEvent& event)
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     MenuItemRenderEraseMode->Check(true);
     MenuItemRenderCanvasMode->Check(false);
     CurrentSeqXmlFile->SetRenderMode(xLightsXmlFile::ERASE_MODE);
@@ -3320,6 +3319,8 @@ void xLightsFrame::OnMenuItemRenderEraseModeSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemRenderCanvasModeSelected(wxCommandEvent& event)
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     MenuItemRenderEraseMode->Check(false);
     MenuItemRenderCanvasMode->Check(true);
     CurrentSeqXmlFile->SetRenderMode(xLightsXmlFile::CANVAS_MODE);
@@ -3327,6 +3328,8 @@ void xLightsFrame::OnMenuItemRenderCanvasModeSelected(wxCommandEvent& event)
 
 void xLightsFrame::UpdateRenderMode()
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     if( CurrentSeqXmlFile->GetRenderMode() == xLightsXmlFile::CANVAS_MODE )
     {
         MenuItemRenderEraseMode->Check(false);
@@ -8494,7 +8497,8 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
         (k == 'A' && (event.ControlDown() || event.CmdDown()) && !event.AltDown()))
     {
         // Just a regular key ... If current focus is a control then we need to not process this
-        if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr && k < 128)
+        if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr &&
+            (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END))
         {
             return false;
         }
