@@ -466,11 +466,9 @@ std::list<PlayListItem*> ScheduleManager::GetPlayListIps() const
 
 bool ScheduleManager::GetWebRequestToggle()
 {
-    static bool last = false;
-
-    if (last && _webRequestToggle) _webRequestToggle = false;
-
-    return _webRequestToggle;
+    bool rc = _webRequestToggle;
+    _webRequestToggle = false;
+    return rc;
 }
 
 bool ScheduleManager::IsDirty()

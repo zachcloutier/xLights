@@ -158,7 +158,7 @@ class ScheduleManager
         RunningSchedule* GetRunningSchedule(Schedule* schedule) const;
         ScheduleOptions* GetOptions() const { return _scheduleOptions; }
         std::list<OutputProcess*>* GetOutputProcessing() { return &_outputProcessing; }
-        void WebRequestReceived() { _webRequestToggle = !_webRequestToggle; }
+        void WebRequestReceived() { _webRequestToggle = true; }
         std::list<PlayListItem*> GetPlayListIps() const;
         bool GetWebRequestToggle();
         bool IsDirty();

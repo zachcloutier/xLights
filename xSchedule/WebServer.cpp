@@ -672,6 +672,7 @@ void WebServer::SendMessageToAllWebSockets(const std::string& message)
             if (it->second->SendMessage(wsm))
             {
                 UpdateValid(*it->second);
+                xScheduleFrame::GetScheduleManager()->WebRequestReceived();
             }
             else
             {

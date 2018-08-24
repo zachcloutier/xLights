@@ -1260,6 +1260,8 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 
     if (__schedule == nullptr) return;
 
+    logger_base.debug("Start frame");
+
     wxDateTime frameStart = wxDateTime::UNow();
 
     reentered = true;
@@ -1271,32 +1273,6 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
         last = wxDateTime::Now().GetSecond();
         wxCommandEvent event2(EVT_SCHEDULECHANGED);
         wxPostEvent(this, event2);
-    }
-
-    static bool webstate = false;
-    if (__schedule->GetWebRequestToggle())
-    {
-        if (!webstate)
-        {
-            if (!_webIconDisplayed)
-            {
-                StaticBitmap_WebIcon->SetBitmap(_webicon);
-                _webIconDisplayed = true;
-            }
-            webstate = true;
-        }
-    }
-    else
-    {
-        if (webstate)
-        {
-            if (_webIconDisplayed)
-            {
-                StaticBitmap_WebIcon->SetBitmap(_nowebicon);
-                _webIconDisplayed = false;
-            }
-            webstate = false;
-        }
     }
 
     CorrectTimer(rate);
@@ -1315,7 +1291,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
         _timerOutputFrame = !_timerOutputFrame;
     }
 
-    //logger_base.debug("Frame time %ld", ms);
+    logger_base.debug("    End Frame: Frame time %ld", ms);
 
     reentered = false;
 }
