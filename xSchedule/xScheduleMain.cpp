@@ -1255,21 +1255,26 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& eve
 void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static bool reentered = false;
+    //static bool reentered = false;
     static int last = -1;
+    static long long lastms;
 
     if (__schedule == nullptr) return;
 
-    logger_base.debug("Start frame");
+    long long now = wxGetLocalTimeMillis().GetValue();
+
+    logger_base.debug("Start frame %d", (int)(now-lastms));
+    lastms = now;
 
     wxDateTime frameStart = wxDateTime::UNow();
 
-    reentered = true;
+    //reentered = true;
 
     int rate = __schedule->Frame(_timerOutputFrame);
 
     if (last != wxDateTime::Now().GetSecond() && _timerOutputFrame)
     {
+        logger_base.debug("Sending 1 second event");
         last = wxDateTime::Now().GetSecond();
         wxCommandEvent event2(EVT_SCHEDULECHANGED);
         wxPostEvent(this, event2);
@@ -1284,6 +1289,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     {
         // we took too long so next frame has to be an output frame
         _timerOutputFrame = true;
+        logger_base.debug("    Skipping half frame");
     }
     else
     {
@@ -1293,7 +1299,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 
     logger_base.debug("    End Frame: Frame time %ld", ms);
 
-    reentered = false;
+    //reentered = false;
 }
 
 void xScheduleFrame::UpdateSchedule()
@@ -1373,7 +1379,10 @@ void xScheduleFrame::UpdateSchedule()
 
 void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Start schedule check");
     UpdateSchedule();
+    logger_base.debug("End schedule check");
 }
 
 void xScheduleFrame::ValidateWindow()
@@ -1509,16 +1518,24 @@ void xScheduleFrame::CreateButtons()
 
 void xScheduleFrame::RateNotification(wxCommandEvent& event)
 {
-    CorrectTimer(event.GetInt());
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xScheduleFrame::RateNotification Start");
+        CorrectTimer(event.GetInt());
+        logger_base.debug("xScheduleFrame::RateNotification End");
 }
 
 void xScheduleFrame::StatusMsgNotification(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xScheduleFrame::StatusMsgNotification Start");
     SetTempMessage(event.GetString().ToStdString());
+    logger_base.debug("xScheduleFrame::StatusMsgNotification End");
 }
 
 void xScheduleFrame::RunAction(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xScheduleFrame::RunAction Start");
     wxArrayString a = wxSplit(event.GetString(), '|');
 
     if (a.Count() == 2)
@@ -1531,6 +1548,7 @@ void xScheduleFrame::RunAction(wxCommandEvent& event)
             SetTempMessage(msg);
         }
     }
+    logger_base.debug("xScheduleFrame::RunAction End");
 }
 
 void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
@@ -2235,11 +2253,15 @@ bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
 
 void xScheduleFrame::CorrectTimer(int rate)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xScheduleFrame::CorrectTimer %d", rate);
     if (rate == 0) rate = 50;
     if ((rate - __schedule->GetTimerAdjustment()) / 2 != _timer.GetInterval())
     {
         _timer.Stop();
-        _timer.Start((rate - __schedule->GetTimerAdjustment()) / 2);
+        int newRate = (rate - __schedule->GetTimerAdjustment()) / 2;
+        _timer.Start(newRate);
+        logger_base.debug("    New Rate %d", newRate);
     }
 }
 
@@ -2370,17 +2392,26 @@ void xScheduleFrame::OnMenu_OutputProcessingSelected(wxCommandEvent& event)
 // This is called when anything interesting happens in schedule manager
 void xScheduleFrame::ScheduleChange(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xScheduleFrame::ScheduleChange Start");
     UpdateUI();
+    logger_base.debug("xScheduleFrame::ScheduleChange End");
 }
 
 void xScheduleFrame::DoCheckSchedule(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xScheduleFrame::DoCheckSchedule Start");
     UpdateSchedule();
     UpdateUI();
+    logger_base.debug("xScheduleFrame::DoCheckSchedule End");
 }
 
 void xScheduleFrame::DoAction(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xScheduleFrame::DoAction Start");
+
     ActionMessageData* amd = (ActionMessageData*)event.GetClientData();
 
     PlayList* playlist = nullptr;
@@ -2403,6 +2434,8 @@ void xScheduleFrame::DoAction(wxCommandEvent& event)
     __schedule->Action(amd->_command, amd->_parameters, amd->_data, playlist, schedule, rate, msg);
 
     delete amd;
+
+    logger_base.debug("xScheduleFrame::DoAction End");
 }
 
 void xScheduleFrame::UpdateUI()
