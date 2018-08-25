@@ -7,12 +7,22 @@
 
 class xlTimerThread;
 
+// CLasses that want to have the timer call it from another thread need to derive from this class
+class xLightsTimerCallback
+{
+public:
+    virtual void TimerCallback(wxTimerEvent& event) = 0;
+};
+
 class xLightsTimer :
     public wxTimer
 {
     xlTimerThread* _t;
     std::atomic<bool> pending;
-public:
+    xLightsTimerCallback* _timerCallback;
+    std::atomic<bool> _suspend;
+
+    public:
     xLightsTimer();
     virtual ~xLightsTimer();
     virtual void Stop();
@@ -20,6 +30,12 @@ public:
     virtual void Notify();
     virtual void DoSendTimer();
     int GetInterval() const;
+
+    // If you use this method to receive the timer notification then be sure that you dont do any UI
+    // updates in the callback function as it will be called on another thread. Also if you are going
+    // to delete objects used in the callback be sure to suspend the time first
+    void SetTimerCallback(xLightsTimerCallback* callback) { _timerCallback = callback; }
+    void Suspend(bool suspend = true) { _suspend = suspend; }
 };
 
 #endif

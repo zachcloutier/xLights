@@ -29,6 +29,8 @@ private:
 #pragma region xlTimerTimer
 xLightsTimer::xLightsTimer()
 {
+    _suspend = false;
+    _timerCallback = nullptr;
     _t = nullptr;
     pending = false;
 }
@@ -69,8 +71,19 @@ void xLightsTimer::DoSendTimer() {
     pending = false;
 }
 void xLightsTimer::Notify() {
-    pending = true;
-    CallAfter(&xLightsTimer::DoSendTimer);
+
+    if (_suspend) return;
+
+    if (_timerCallback != nullptr)
+    {
+        wxTimerEvent event(*this);
+        _timerCallback->TimerCallback(event);
+    }
+    else
+    {
+        pending = true;
+        CallAfter(&xLightsTimer::DoSendTimer);
+    }
 }
 
 int xLightsTimer::GetInterval() const
@@ -100,9 +113,14 @@ wxThread::ExitCode xlTimerThread::Entry()
     bool stop = _stop;
     int fudgefactor = _fudgefactor;
     bool oneshot = _oneshot;
+    long long last = wxGetLocalTimeMillis().GetValue();
+
     while (!stop)
     {
-        wxMilliSleep(std::max(1, _interval + fudgefactor));
+        long long now = wxGetLocalTimeMillis().GetValue();
+        long long toSleep = last + _interval + fudgefactor - now;
+        last = now;
+        wxMilliSleep(std::max(1, (int)toSleep));
         stop = _stop;
         fudgefactor = _fudgefactor;
         if (oneshot || !stop)
