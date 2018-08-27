@@ -64,17 +64,26 @@ bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*
 }
 
 void xLightsTimer::DoSendTimer() {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!pending) {
+        logger_base.debug("xLightsTimer DoSendTimer exiting as not pending.");
         return;
     }
+    logger_base.debug("xLightsTimer DoSendTimer pre notify.");
     wxTimer::Notify();
     //reset pending to false AFTER sending the event so if sending takes to long, it results in a skipped frame instead of
     //infinite number of CallAfters consuming the CPU
+    logger_base.debug("xLightsTimer DoSendTimer post notify.");
     pending = false;
 }
 void xLightsTimer::Notify() {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (_suspend) return;
+    if (_suspend) 
+    {
+        logger_base.debug("xLightsTimer notify exiting as suspended.");
+        return;
+    }
 
     if (_timerCallback != nullptr)
     {
@@ -84,7 +93,9 @@ void xLightsTimer::Notify() {
     else
     {
         pending = true;
+        logger_base.debug("xLightsTimer pre call after.");
         CallAfter(&xLightsTimer::DoSendTimer);
+        logger_base.debug("xLightsTimer post call after.");
     }
 }
 
