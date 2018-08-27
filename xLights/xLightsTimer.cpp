@@ -1,12 +1,14 @@
+#include <log4cpp/Category.hh>
 
+#include <wx/thread.h>
 
 #include "xLightsTimer.h"
-#include <wx/thread.h>
+
+#include <map>
 
 #ifndef __WXOSX__
 #define USE_THREADED_TIMER
 #endif
-
 
 #ifdef USE_THREADED_TIMER
 
@@ -110,6 +112,7 @@ void xlTimerThread::Stop()
 }
 wxThread::ExitCode xlTimerThread::Entry()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool stop = _stop;
     int fudgefactor = _fudgefactor;
     bool oneshot = _oneshot;
@@ -119,8 +122,9 @@ wxThread::ExitCode xlTimerThread::Entry()
     {
         long long now = wxGetLocalTimeMillis().GetValue();
         long long toSleep = last + _interval + fudgefactor - now;
-        last = now;
-        wxMilliSleep(std::max(1, (int)toSleep));
+        logger_base.debug("timer interval %d sleep %d", _interval, (int)toSleep);
+        wxMilliSleep((std::max)(1, (int)toSleep));
+        last = wxGetLocalTimeMillis().GetValue();
         stop = _stop;
         fudgefactor = _fudgefactor;
         if (oneshot || !stop)

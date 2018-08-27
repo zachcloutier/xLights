@@ -3130,6 +3130,9 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
     int width = housePreview->getWidth();
     int height = housePreview->getHeight();
     double contentScaleFactor = GetContentScaleFactor();
+#ifdef _WIN32
+    contentScaleFactor = 1.;
+#endif // WIN32
 
     int audioChannelCount = 0;
     int audioSampleRate = 0;
@@ -3444,6 +3447,7 @@ void xLightsFrame::OnmSaveFseqOnSaveMenuItemSelected(wxCommandEvent& event)
         mRenderOnSaveMenuItem->Check(false);
         mRenderOnSaveMenuItem->Enable(false);
         mRenderOnSave = false;
+        wxMessageBox("Turning off save of the FSEQ is really not recommended. This will often require you to re-render a sequence every time you load it ... all to save yourself a couple of seconds save time.");
     }
 }
 
@@ -8649,5 +8653,5 @@ void xLightsFrame::OnCharHook(wxKeyEvent& event)
 
 void xLightsFrame::OnMenuItem_ZoomSelected(wxCommandEvent& event)
 {
-    ::wxLaunchDefaultBrowser("https://zoom.us/s/175801909");
+    ::wxLaunchDefaultBrowser("https://zoom.us/j/175801909");
 }

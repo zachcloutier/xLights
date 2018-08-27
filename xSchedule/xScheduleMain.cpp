@@ -2010,6 +2010,22 @@ void xScheduleFrame::UpdateStatus()
     }
 
     // update each button based on current status
+
+    PlayList* playlist = nullptr;
+    Schedule* schedule = nullptr;
+
+    wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
+
+    if (IsPlayList(treeitem))
+    {
+        playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+    }
+    else if (IsSchedule(treeitem))
+    {
+        schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+        playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
+    }
+
     auto buttons = Panel1->GetChildren();
     for (auto it = buttons.begin(); it != buttons.end(); ++it)
     {
@@ -2019,21 +2035,6 @@ void xScheduleFrame::UpdateStatus()
         {
             std::string command = b->GetCommand();
             std::string parameters = b->GetParameters();
-
-            PlayList* playlist = nullptr;
-            Schedule* schedule = nullptr;
-
-            wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
-
-            if (IsPlayList(treeitem))
-            {
-                playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-            }
-            else if (IsSchedule(treeitem))
-            {
-                schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-                playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
-            }
 
             Command* c = __schedule->GetCommand(command);
             std::string msg;
@@ -2442,16 +2443,18 @@ void xScheduleFrame::UpdateUI()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    wxStopWatch sw;
+
     logger_base.debug("UpdateUI start");
 
     StaticText_PacketsPerSec->SetLabel(wxString::Format("Packets/Sec: %d", __schedule->GetPPS()));
 
-    logger_base.debug("    Update status");
+    logger_base.debug("    Update status %ld", sw.Time());
     UpdateStatus();
 
     Brightness->SetValue(__schedule->GetBrightness());
 
-    logger_base.debug("    Web toggle");
+    logger_base.debug("    Web toggle %ld", sw.Time());
     if (__schedule->GetWebRequestToggle())
     {
         if (!_webIconDisplayed)
@@ -2469,7 +2472,7 @@ void xScheduleFrame::UpdateUI()
         }
     }
 
-    logger_base.debug("    Output to lights");
+    logger_base.debug("    Output to lights %ld", sw.Time());
     if (!_suspendOTL)
     {
         if (!__schedule->GetOptions()->IsSendOffWhenNotRunning() && __schedule->GetManualOutputToLights() == -1)
@@ -2505,7 +2508,7 @@ void xScheduleFrame::UpdateUI()
             __schedule->SetOutputToLights(this, false, false);
     }
 
-    logger_base.debug("    Menus");
+    logger_base.debug("    Menus %ld", sw.Time());
     if (__schedule->GetMode() == SYNCMODE::FPPMASTER)
     {
         MenuItem_FPPMaster->Check(true);
@@ -2615,7 +2618,7 @@ void xScheduleFrame::UpdateUI()
         MenuItem_ARTNetTimeCodeSlave->Check(false);
     }
 
-    logger_base.debug("    Ping");
+    logger_base.debug("    Ping %ld", sw.Time());
     if (_pinger != nullptr)
     {
         auto pingresults = _pinger->GetPingers();
@@ -2686,12 +2689,12 @@ void xScheduleFrame::UpdateUI()
         }
     }
 
-    logger_base.debug("    Validate");
+    logger_base.debug("    Validate %ld", sw.Time());
     ValidateWindow();
 
     Refresh();
 
-    logger_base.debug("    Done!");
+    logger_base.debug("    Done! %ld", sw.Time());
 }
 
 void xScheduleFrame::OnMenuItem_BackgroundPlaylistSelected(wxCommandEvent& event)
