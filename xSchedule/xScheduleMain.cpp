@@ -2515,6 +2515,9 @@ void xScheduleFrame::UpdateUI()
             __schedule->SetOutputToLights(this, false, false);
     }
 
+	// need to remove this
+	return;
+	
     logger_base.debug("    Menus %ld", sw.Time());
     if (__schedule->GetMode() == SYNCMODE::FPPMASTER)
     {
