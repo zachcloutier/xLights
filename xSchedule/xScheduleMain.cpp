@@ -2695,7 +2695,7 @@ void xScheduleFrame::UpdateUI()
     ValidateWindow();
 
 // this may be the performance issue cause if it triggers an update event which is then slow !!!!!!
-    Refresh();
+//    Refresh();
 
     logger_base.debug("    Done! %ld", sw.Time());
 }
@@ -2809,8 +2809,6 @@ void xScheduleFrame::OnMenuItem_VirtualMatricesSelected(wxCommandEvent& event)
 
 void xScheduleFrame::SendStatus()
 {
-	// NEED TO REMOVE
-	return;
     if (_webServer != nullptr && __schedule != nullptr)
     {
         std::string result;
