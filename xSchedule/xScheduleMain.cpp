@@ -2694,9 +2694,7 @@ void xScheduleFrame::UpdateUI()
     logger_base.debug("    Validate %ld", sw.Time());
     ValidateWindow();
 
-// need to remove this
-return;
-	
+// this may be the performance issue cause if it triggers an update event which is then slow !!!!!!
     Refresh();
 
     logger_base.debug("    Done! %ld", sw.Time());
