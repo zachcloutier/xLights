@@ -1379,6 +1379,8 @@ void xScheduleFrame::UpdateSchedule()
 
 void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
 {
+	// NEED TO REMOVE
+	return;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Start schedule check");
     UpdateSchedule();
@@ -1707,6 +1709,9 @@ std::string FormatTime(size_t timems, bool ms = false)
 
 void xScheduleFrame::UpdateStatus()
 {
+		// NEED TO REMOVE
+	return;
+
     ListView_Running->Freeze();
 
     if (StatusBar1->GetStatusText() != "" && (wxDateTime::Now() - _statusSetAt).GetMilliseconds() >  5000)
@@ -2808,6 +2813,8 @@ void xScheduleFrame::OnMenuItem_VirtualMatricesSelected(wxCommandEvent& event)
 
 void xScheduleFrame::SendStatus()
 {
+	// NEED TO REMOVE
+	return;
     if (_webServer != nullptr && __schedule != nullptr)
     {
         std::string result;
