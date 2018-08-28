@@ -1,10 +1,10 @@
-#include <log4cpp/Category.hh>
-
 #include <wx/thread.h>
 
 #include "xLightsTimer.h"
 
 #include <map>
+
+#include <log4cpp/Category.hh>
 
 #ifndef __WXOSX__
 #define USE_THREADED_TIMER
@@ -34,7 +34,6 @@ xLightsTimer::xLightsTimer()
     _suspend = false;
     _timerCallback = nullptr;
     _t = nullptr;
-    pending = false;
 }
 xLightsTimer::~xLightsTimer()
 {
@@ -63,23 +62,10 @@ bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*
     return true;
 }
 
-void xLightsTimer::DoSendTimer() {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (!pending) {
-        logger_base.debug("xLightsTimer DoSendTimer exiting as not pending.");
-        return;
-    }
-    logger_base.debug("xLightsTimer DoSendTimer pre notify.");
-    wxTimer::Notify();
-    //reset pending to false AFTER sending the event so if sending takes to long, it results in a skipped frame instead of
-    //infinite number of CallAfters consuming the CPU
-    logger_base.debug("xLightsTimer DoSendTimer post notify.");
-    pending = false;
-}
 void xLightsTimer::Notify() {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (_suspend) 
+    if (_suspend)
     {
         logger_base.debug("xLightsTimer notify exiting as suspended.");
         return;
@@ -92,10 +78,8 @@ void xLightsTimer::Notify() {
     }
     else
     {
-        pending = true;
-        logger_base.debug("xLightsTimer pre call after.");
-        CallAfter(&xLightsTimer::DoSendTimer);
-        logger_base.debug("xLightsTimer post call after.");
+        wxTimerEvent event(*this);
+        wxPostEvent(GetOwner(), event);
     }
 }
 
@@ -127,12 +111,12 @@ wxThread::ExitCode xlTimerThread::Entry()
     bool stop = _stop;
     int fudgefactor = _fudgefactor;
     bool oneshot = _oneshot;
-    long long last = wxGetLocalTimeMillis().GetValue();
+    uint64_t last = wxGetLocalTimeMillis().GetValue();
 
     while (!stop)
     {
-        long long now = wxGetLocalTimeMillis().GetValue();
-        long long toSleep = last + _interval + fudgefactor - now;
+        uint64_t now = wxGetLocalTimeMillis().GetValue();
+        uint64_t toSleep = last + _interval + fudgefactor - now;
         logger_base.debug("timer interval %d sleep %d", _interval, (int)toSleep);
         wxMilliSleep((std::max)(1, (int)toSleep));
         last = wxGetLocalTimeMillis().GetValue();
@@ -147,14 +131,15 @@ wxThread::ExitCode xlTimerThread::Entry()
             stop = true;
         }
     }
-    return 0;
+
+    return wxThread::ExitCode(nullptr);
 }
 
 void xlTimerThread::SetFudgeFactor(int ff)
 {
     _fudgefactor = ff;
 }
-#else 
+#else
 xLightsTimer::xLightsTimer() {}
 xLightsTimer::~xLightsTimer() {}
 void xLightsTimer::Stop() {wxTimer::Stop();}

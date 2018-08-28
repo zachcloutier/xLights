@@ -1487,12 +1487,12 @@ void xScheduleFrame::CreateButtons()
     // create some default buttons
     if (bs.size() == 0)
     {
-        __schedule->GetOptions()->AddButton("Play Selected", "Play selected playlist", "", '~', "green");
-        __schedule->GetOptions()->AddButton("Stop All", "Stop all now", "", '~', "red");
-        __schedule->GetOptions()->AddButton("Reset All Schedules", "Restart all schedules", "", '~', "default");
-        __schedule->GetOptions()->AddButton("Next Step", "Next step in current playlist", "", '~', "default");
-        __schedule->GetOptions()->AddButton("End Gracefully", "Jump to play once at end at end of current step and then stop", "", '~', "red");
-        __schedule->GetOptions()->AddButton("Add 10 Mins To Schedule", "Add to the current schedule n minutes", "10", '~', "default");
+        __schedule->GetOptions()->AddButton("Play Selected", "Play selected playlist", "", '~', "green", __schedule->GetCommandManager());
+        __schedule->GetOptions()->AddButton("Stop All", "Stop all now", "", '~', "red", __schedule->GetCommandManager());
+        __schedule->GetOptions()->AddButton("Reset All Schedules", "Restart all schedules", "", '~', "default", __schedule->GetCommandManager());
+        __schedule->GetOptions()->AddButton("Next Step", "Next step in current playlist", "", '~', "default", __schedule->GetCommandManager());
+        __schedule->GetOptions()->AddButton("End Gracefully", "Jump to play once at end at end of current step and then stop", "", '~', "red", __schedule->GetCommandManager());
+        __schedule->GetOptions()->AddButton("Add 10 Mins To Schedule", "Add to the current schedule n minutes", "10", '~', "default", __schedule->GetCommandManager());
 
         bs = __schedule->GetOptions()->GetButtons();
     }
@@ -1739,7 +1739,10 @@ void xScheduleFrame::UpdateStatus()
     }
     else
     {
-        if (p->GetId() != lastid || p->GetChangeCount() != lastcc || (int)p->IsRunning() != lastrunning || p->GetSteps().size() != laststeps)
+        if (p->GetId() != lastid || 
+            p->GetChangeCount() != lastcc || 
+            (int)p->IsRunning() != lastrunning || 
+            p->GetSteps().size() != laststeps)
         {
             lastcc = p->GetChangeCount();
             lastid = p->GetId();
@@ -2035,8 +2038,7 @@ void xScheduleFrame::UpdateStatus()
         {
             std::string command = b->GetCommand();
             std::string parameters = b->GetParameters();
-
-            Command* c = __schedule->GetCommand(command);
+            Command* c = b->GetCommandObj();
             std::string msg;
             if (c != nullptr && c->IsValid(parameters, playlist, schedule, __schedule, msg, __schedule->IsQueuedPlaylistRunning()))
             {

@@ -12,13 +12,14 @@ class xLightsTimerCallback
 {
 public:
     virtual void TimerCallback(wxTimerEvent& event) = 0;
+    virtual ~xLightsTimerCallback() {}
+    xLightsTimerCallback() {}
 };
 
 class xLightsTimer :
     public wxTimer
 {
     xlTimerThread* _t;
-    std::atomic<bool> pending;
     xLightsTimerCallback* _timerCallback;
     std::atomic<bool> _suspend;
 
@@ -28,7 +29,6 @@ class xLightsTimer :
     virtual void Stop();
     virtual bool Start(int time = -1, bool oneShot = wxTIMER_CONTINUOUS);
     virtual void Notify();
-    virtual void DoSendTimer();
     int GetInterval() const;
 
     // If you use this method to receive the timer notification then be sure that you dont do any UI

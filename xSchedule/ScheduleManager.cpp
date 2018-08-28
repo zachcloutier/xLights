@@ -91,7 +91,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
             }
             else if (n->GetName() == "Options")
             {
-                _scheduleOptions = new ScheduleOptions(_outputManager, n);
+                _scheduleOptions = new ScheduleOptions(_outputManager, n, GetCommandManager());
                 Schedule::SetCity(_scheduleOptions->GetCity());
             }
             else if (n->GetName() == "OutputProcesses")

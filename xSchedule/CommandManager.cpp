@@ -8,8 +8,7 @@
 
 Command::Command(const std::string& name, int parms, const PARMTYPE* parmtypes, bool reqSelPL, bool reqSelSch, bool reqPlayPL, bool reqPlaySch, bool worksinslavemode, bool worksInQueuedMode, bool userSelectable, bool uiOnly)
 {
-    _command = name;
-    _commandLower = wxString(name).Lower();
+    SetCommand(name);
     _parms = parms;
     for (int i = 0; i < parms; i++)
     {

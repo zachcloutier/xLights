@@ -27,61 +27,61 @@ BEGIN_EVENT_TABLE(ButtonDetailsDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, CommandManager* commandManager, std::string& label, std::string& command, std::string& color, std::string& parameter, char& hotkey, wxWindowID id,const wxPoint& pos,const wxSize& size) : _label(label), _command(command), _parameter(parameter), _hotkey(hotkey), _color(color), _commandManager(commandManager)
+ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, CommandManager* commandManager, std::string& label, std::string& command, std::string& color, std::string& parameter, char& hotkey, wxWindowID id, const wxPoint& pos, const wxSize& size) : _label(label), _command(command), _parameter(parameter), _hotkey(hotkey), _color(color), _commandManager(commandManager)
 {
-	//(*Initialize(ButtonDetailsDialog)
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer1;
+    //(*Initialize(ButtonDetailsDialog)
+    wxFlexGridSizer* FlexGridSizer2;
+    wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, id, _("Button Details"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
-	SetClientSize(wxDefaultSize);
-	Move(wxDefaultPosition);
-	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer1->AddGrowableCol(1);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Label:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Label = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-	FlexGridSizer1->Add(TextCtrl_Label, 1, wxALL|wxEXPAND, 5);
-	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Command:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_Command = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-	FlexGridSizer1->Add(Choice_Command, 1, wxALL|wxEXPAND, 5);
-	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Parameters:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Parameters = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
-	FlexGridSizer1->Add(TextCtrl_Parameters, 1, wxALL|wxEXPAND, 5);
-	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Hot Key:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_Hotkey = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
-	FlexGridSizer1->Add(Choice_Hotkey, 1, wxALL|wxEXPAND, 5);
-	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Web Color"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
-	FlexGridSizer1->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Choice1 = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
-	Choice1->SetSelection( Choice1->Append(_("default")) );
-	Choice1->Append(_("red"));
-	Choice1->Append(_("blue"));
-	Choice1->Append(_("green"));
-	Choice1->Append(_("cyan"));
-	Choice1->Append(_("orange"));
-	FlexGridSizer1->Add(Choice1, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
-	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	Button_Ok->SetDefault();
-	FlexGridSizer2->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_Cancel = new wxButton(this, ID_BUTTON2, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-	FlexGridSizer2->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
+    Create(parent, id, _("Button Details"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxRESIZE_BORDER | wxMAXIMIZE_BOX, _T("id"));
+    SetClientSize(wxDefaultSize);
+    Move(wxDefaultPosition);
+    FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer1->AddGrowableCol(1);
+    StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Label:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    FlexGridSizer1->Add(StaticText1, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Label = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+    FlexGridSizer1->Add(TextCtrl_Label, 1, wxALL | wxEXPAND, 5);
+    StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Command:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    FlexGridSizer1->Add(StaticText2, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    Choice_Command = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+    FlexGridSizer1->Add(Choice_Command, 1, wxALL | wxEXPAND, 5);
+    StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Parameters:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+    FlexGridSizer1->Add(StaticText3, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Parameters = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
+    FlexGridSizer1->Add(TextCtrl_Parameters, 1, wxALL | wxEXPAND, 5);
+    StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Hot Key:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+    FlexGridSizer1->Add(StaticText4, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    Choice_Hotkey = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
+    FlexGridSizer1->Add(Choice_Hotkey, 1, wxALL | wxEXPAND, 5);
+    StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Web Color"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+    FlexGridSizer1->Add(StaticText5, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    Choice1 = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
+    Choice1->SetSelection(Choice1->Append(_("default")));
+    Choice1->Append(_("red"));
+    Choice1->Append(_("blue"));
+    Choice1->Append(_("green"));
+    Choice1->Append(_("cyan"));
+    Choice1->Append(_("orange"));
+    FlexGridSizer1->Add(Choice1, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer1->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
+    Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    Button_Ok->SetDefault();
+    FlexGridSizer2->Add(Button_Ok, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    Button_Cancel = new wxButton(this, ID_BUTTON2, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    FlexGridSizer2->Add(Button_Cancel, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    SetSizer(FlexGridSizer1);
+    FlexGridSizer1->Fit(this);
+    FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ButtonDetailsDialog::OnTextCtrl_LabelText);
-	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ButtonDetailsDialog::OnChoice_CommandSelect);
-	Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ButtonDetailsDialog::OnTextCtrl_ParametersText);
-	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButtonDetailsDialog::OnButton_OkClick);
-	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ButtonDetailsDialog::OnButton_CancelClick);
-	//*)
+    Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&ButtonDetailsDialog::OnTextCtrl_LabelText);
+    Connect(ID_CHOICE1, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ButtonDetailsDialog::OnChoice_CommandSelect);
+    Connect(ID_TEXTCTRL2, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&ButtonDetailsDialog::OnTextCtrl_ParametersText);
+    Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ButtonDetailsDialog::OnButton_OkClick);
+    Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ButtonDetailsDialog::OnButton_CancelClick);
+    //*)
 
     int x, y;
     GetSize(&x, &y);
@@ -99,7 +99,7 @@ ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, CommandManager* comma
     TextCtrl_Label->SetValue(label);
     TextCtrl_Parameters->SetValue(parameter);
     Choice_Command->SetSelection(-1);
-    for(int i = 0; i < Choice_Command->GetCount(); i++)
+    for (size_t i = 0; i < Choice_Command->GetCount(); i++)
     {
         if (Choice_Command->GetString(i) == command)
         {
@@ -141,7 +141,6 @@ ButtonDetailsDialog::~ButtonDetailsDialog()
 	//(*Destroy(ButtonDetailsDialog)
 	//*)
 }
-
 
 void ButtonDetailsDialog::OnButton_OkClick(wxCommandEvent& event)
 {
