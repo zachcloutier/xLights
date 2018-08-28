@@ -1379,8 +1379,6 @@ void xScheduleFrame::UpdateSchedule()
 
 void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
 {
-	// NEED TO REMOVE
-	return;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Start schedule check");
     UpdateSchedule();
@@ -2622,9 +2620,6 @@ void xScheduleFrame::UpdateUI()
         MenuItem_ARTNetTimeCodeSlave->Check(false);
     }
 
-	// need to remove this
-	return;
-	
     logger_base.debug("    Ping %ld", sw.Time());
     if (_pinger != nullptr)
     {
@@ -2695,6 +2690,10 @@ void xScheduleFrame::UpdateUI()
             }
         }
     }
+
+		// need to remove this
+	return;
+	
 
     logger_base.debug("    Validate %ld", sw.Time());
     ValidateWindow();
