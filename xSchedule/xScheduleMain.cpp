@@ -2691,13 +2691,12 @@ void xScheduleFrame::UpdateUI()
         }
     }
 
-		// need to remove this
-	return;
-	
-
     logger_base.debug("    Validate %ld", sw.Time());
     ValidateWindow();
 
+// need to remove this
+return;
+	
     Refresh();
 
     logger_base.debug("    Done! %ld", sw.Time());
