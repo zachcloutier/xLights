@@ -29,7 +29,7 @@ class ControllerCaps;
 
 class UDControllerPortModel
 {
-    #pragma region Member Varaibles
+#pragma region Member Varaibles
     int32_t _startChannel = -1;
     int32_t _endChannel = -1;
     int _string = -1;
@@ -38,20 +38,21 @@ class UDControllerPortModel
     int32_t _universeStartChannel = -1;
     std::string _protocol;
     int _smartRemote = -1;
-    #pragma endregion
+    std::string _smartRemoteType;
+#pragma endregion
 
-    #pragma region Private Functions
+#pragma region Private Functions
     bool ChannelsOnOutputs(const std::list<Output*>& outputs) const;
-    #pragma endregion
+#pragma endregion
 
 public:
 
-    #pragma region Constructors and Destructors
+#pragma region Constructors and Destructors
     UDControllerPortModel(Model* m, Controller* controller, OutputManager* om, int string);
     virtual ~UDControllerPortModel() {};
-    #pragma endregion
+#pragma endregion
 
-    #pragma region Operators
+#pragma region Operators
     bool operator<(const UDControllerPortModel& cpm) const {
 
         if (_smartRemote == cpm._smartRemote) {
@@ -59,9 +60,9 @@ public:
         }
         return _smartRemote < cpm._smartRemote;
     }
-    #pragma endregion
+#pragma endregion
 
-    #pragma region Getters and Setters
+#pragma region Getters and Setters
     int GetChannelsPerPixel();
     int32_t Channels() const { return _endChannel - _startChannel + 1; }
     int32_t GetStartChannel() const { return _startChannel; }
@@ -72,6 +73,7 @@ public:
     int GetUniverseStartChannel() const { return _universeStartChannel; }
 
     int GetSmartRemote() const { return _smartRemote; }
+    std::string GetSmartRemoteType() { return _smartRemoteType; }
 
     int GetSmartTs(int currentTs);
     int GetBrightness(int currentBrightness);

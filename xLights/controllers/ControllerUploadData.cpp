@@ -61,6 +61,7 @@ UDControllerPortModel::UDControllerPortModel(Model* m, Controller* controller, O
     _string = string;
     _protocol = _model->GetControllerProtocol();
     _smartRemote = _model->GetSmartRemoteForString(string+1);
+    _smartRemoteType = _model->GetSmartRemoteType();
 
     if (string == -1) {
         _startChannel = _model->GetNumberFromChannelString(_model->ModelStartChannel);

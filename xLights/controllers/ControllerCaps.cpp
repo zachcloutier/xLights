@@ -514,6 +514,12 @@ std::list<std::string> ControllerCaps::GetAllProtocols() const
     return res;
 }
 
+std::list<std::string> ControllerCaps::GetSmartRecieverTypes() const
+{
+    if (!SupportsSmartRemotes()) return std::list<std::string>();
+    return GetXmlNodeListContent(_config, "SmartRecieverTypes", "Type");
+}
+
 std::string ControllerCaps::GetVariantName() const {
     auto name = _config->GetAttribute("Name");
     return name.ToStdString();
@@ -538,7 +544,13 @@ void ControllerCaps::Dump() const
     if (SupportsInputOnlyUpload()) logger_base.debug("   Supports input only upload.");
     if (SupportsLEDPanelMatrix()) logger_base.debug("   Supports LED panel matrices.");
     if (SupportsVirtualStrings()) logger_base.debug("   Supports virtual strings.");
-    if (SupportsSmartRemotes()) logger_base.debug("   Supports smart remotes.");
+    if (SupportsSmartRemotes()) {
+        logger_base.debug("   Supports smart remotes.");
+        logger_base.debug("   Supported smart remotes types:");
+        for (const auto& it : GetSmartRecieverTypes()) {
+            logger_base.debug("      " + it);
+        }
+    }
     if (SupportsMultipleSimultaneousOutputProtocols()) logger_base.debug("   Supports multiple simultaneous output protocols.");
     if (AllInputUniversesMustBeSameSize()) logger_base.debug("   All input universes must be the same size.");
     if (UniversesMustBeInNumericalOrder()) logger_base.debug("   All input universes must be in numerical order.");

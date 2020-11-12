@@ -69,6 +69,41 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT4" variable="SmartRemoteID" member="yes">
+							<label>SmartRemote ID</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE3" variable="Choice_SmartRemote_ID" member="yes">
+							<content>
+								<item>N/A</item>
+								<item>0</item>
+								<item>1</item>
+								<item>2</item>
+								<item>3</item>
+								<item>4</item>
+								<item>5</item>
+								<item>6</item>
+								<item>7</item>
+								<item>8</item>
+								<item>9</item>
+								<item>10</item>
+								<item>11</item>
+								<item>12</item>
+								<item>13</item>
+								<item>14</item>
+								<item>15</item>
+							</content>
+							<selection>0</selection>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_PixelDirection" member="yes">
 							<label>Set Direction</label>
 							<handler function="OnPixelDirectionClick" entry="EVT_CHECKBOX" />

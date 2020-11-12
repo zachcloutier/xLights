@@ -248,13 +248,17 @@ public:
     std::string GetControllerConnectionPortRangeString() const;
     std::string GetControllerConnectionAttributeString() const;
     void ReplaceIPInStartChannels(const std::string& oldIP, const std::string& newIP);
-    static std::string DecodeSmartRemote(int sr);
+    std::string DecodeSmartRemote(int sr) const;
+    std::list<std::string> GetSmartRemoteTypes() const;
+    int GetSmartRemoteTypeIndex(const std::string& srType) const;
+    std::string GetSmartRemoteTypeName(int idx) const;
 
     static std::list<std::string> GetProtocols();
     static std::list<std::string> GetLCProtocols();
     static bool IsProtocolValid(std::string protocol);
     static bool IsPixelProtocol(const std::string& protocol);
     static bool IsSerialProtocol(const std::string& protocol);
+    static bool IsHinksPixSR(const std::string& srType);
 
     void SetTagColour(wxColour colour);
     wxColour GetTagColour() const { return modelTagColour; }
@@ -281,9 +285,13 @@ public:
     int GetSortableSmartRemote() const;
     int GetSmartTs() const;
     int GetSmartRemoteForString(int string = 1) const;
+    std::string GetSmartRemoteType() const;
+    int GetSmartRemoteCascade() const;
     int GetControllerPort(int string = 1) const;
     void SetModelChain(const std::string& modelChain);
     void SetSmartRemote(int sr);
+    void SetSmartRemoteType(const std::string& type);
+    void SetSmartRemoteCascade(int cascaded);
     void SetControllerDMXChannel(int ch);
     std::string GetModelChain() const;
     const std::vector<Model*>& GetSubModels() const { return subModels; }

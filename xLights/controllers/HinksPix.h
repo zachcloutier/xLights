@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <list>
+#include <array>
 #include <string>
 #include <memory>
 
@@ -19,6 +20,7 @@
 #include "BaseController.h"
 
 class HinksPix;
+class wxJSONValue;
 
 class HinksPixOutput
 {
@@ -81,6 +83,32 @@ public:
     wxString BuildCommand() const;
 };
 
+class HinksSmartOutput
+{
+public:
+    HinksSmartOutput( int id_) :
+        //expan(expan_), group(group_),
+        id(id_), type(0),
+        portStartPixel{ 1, 1, 1, 1 }
+    { };
+    //int expan;
+    //int group;
+    int id;
+    int type;
+    std::array<int,4> portStartPixel;
+
+    bool operator==(const HinksSmartOutput& rhs) const
+    {
+        return //expan == rhs.expan && 
+               //group == rhs.group && 
+               id == rhs.id ;
+    }
+
+    void Dump() const;
+    void SetConfig(wxString const& data);
+    wxString BuildCommand() const;
+};
+
 class HinksPix : public BaseController
 {
     #pragma region Member Variables
@@ -91,6 +119,8 @@ class HinksPix : public BaseController
 
     std::vector<HinksPixOutput> _pixelOutputs;
     std::unique_ptr <HinksPixSerial> _serialOutput;
+    std::vector<HinksSmartOutput> _smartOutputs[3][4];
+    //std::array<std::array<HinksSmartOutput, 4>, 3> a
     #pragma endregion 
 
     #pragma region Encode and Decode
@@ -109,14 +139,20 @@ class HinksPix : public BaseController
     void UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int mode) const;
     void UploadPixelOutputs(bool& worked);
     void UploadExpansionBoardData(int expansion, int startport, int length, bool& worked);
+    void UploadSmartRecievers(bool& worked);
+    void UploadSmartRecieverData(int expan, int bank, std::vector<HinksSmartOutput> const& receivers, bool& worked);
+    void CalculateSmartRecievers(UDControllerPort* stringData);
     wxString GetControllerData(int rowIndex, std::string const& data = std::string());
     wxString GetControllerE131Data(int rowIndex);
     wxString GetControllerRowData(int rowIndex, std::string const& url, std::string const& data);
+    std::string GetJSONControllerData(std::string const& url, std::string const& data);
+    bool GetControllerDatasJSON(const std::string& url, std::string const& data, wxJSONValue& val);
     int CalcControllerChannel(int universe, int startChan, std::map<int, int> const& uniChan) const;
     std::map<int, int> MapE131Addresses();
     std::map<wxString,wxString> StringToMap(wxString const& text) const;
     static const std::string GetInfoURL() { return"/GetInfo.cgi"; };
     static const std::string GetE131URL() { return"/GetE131Data.cgi"; };
+    static const std::string GetJSONPostURL() { return"/Xlights_PostData.cgi"; };
     const int GetNumberOfOutputs() { return _numberOfOutputs; }
     const int GetNumberOfSerial() { return 1; }
 

@@ -104,6 +104,7 @@ public:
     std::list<std::string> GetPixelProtocols() const;
     std::list<std::string> GetSerialProtocols() const;
     std::list<std::string> GetAllProtocols() const;
+    std::list<std::string> GetSmartRecieverTypes() const;
 
     std::string GetCustomPropertyByPath(const std::string path, const std::string& def = "") const;
     

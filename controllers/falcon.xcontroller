@@ -54,6 +54,9 @@
             <Protocol>artnet</Protocol>
             <Protocol>zcpp</Protocol>
         </InputProtocols>
+        <SmartRecieverTypes>
+            <Type>falcon4</Type>
+        </SmartRecieverTypes>
     </AbstractVariant>
 	<Controller Name="F4V2">
 		<Variant Name="No Expansion Board" Base="Falcon:BaseFalconV2Settings">

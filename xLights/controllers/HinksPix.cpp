@@ -17,6 +17,9 @@
 #include "ControllerCaps.h"
 #include "UtilFunctions.h"
 
+#include "../xSchedule/wxJSON/jsonreader.h"
+#include "../xSchedule/wxJSON/jsonwriter.h"
+
 #include <curl/curl.h>
 
 #include <wx/msgdlg.h>
@@ -133,6 +136,48 @@ wxString HinksPixSerial::BuildCommand() const
     return wxString::Format("A,%d,B,%d,C,%d,D,%d,E,%d,F,%d,G,%d,H,%d",
         mode, e131Enabled, ddpEnabled, e131Universe, e131StartChannel,
         e131NumOfChan, ddpStartChannel, ddpNumOfChan);
+}
+#pragma endregion
+
+#pragma region HinksPixSmart
+void HinksSmartOutput::Dump() const
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("  ID %d Type %d Port 1 Start Pixel %d Port 2 Start Pixel %d Port 3 Start Pixel %d Port 4 Start Pixel %d",
+        //expan,
+        //group,
+        id,
+        type,
+        portStartPixel[0],
+        portStartPixel[1],
+        portStartPixel[2],
+        portStartPixel[3]
+    );
+}
+
+void HinksSmartOutput::SetConfig(wxString const& data)
+{
+    const wxArrayString config = Split(data, { ',' });
+    if (config.size() != 6) {
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.error("Invalid config data '%s'", (const char*)data.c_str());
+        return;
+    }
+
+    id = wxAtoi(config[0]);
+    type = wxAtoi(config[1]);
+    portStartPixel[0] = wxAtoi(config[2]);
+    portStartPixel[1] = wxAtoi(config[3]);
+    portStartPixel[2] = wxAtoi(config[4]);
+    portStartPixel[3] = wxAtoi(config[5]);
+}
+
+wxString HinksSmartOutput::BuildCommand() const
+{
+    //{"V":"1,0,51,51,51,51"}
+    return wxString::Format("{\"V\":\"%d,%d,%d,%d,%d,%d,\"}",
+        id, type, portStartPixel[0], portStartPixel[1],
+        portStartPixel[2], portStartPixel[3]);
 }
 #pragma endregion
 
@@ -333,6 +378,78 @@ void HinksPix::UpdateSerialData( HinksPixSerial & pd, UDControllerPort* serialDa
     }
 }
 
+void HinksPix::UploadSmartRecievers(bool& worked) 
+{
+    int exp = 0;
+    for (auto const & expan: _smartOutputs)
+    {
+        int bnk = 0;
+        for (auto const& bank : expan)
+        {
+            UploadSmartRecieverData(exp, bnk, _smartOutputs[exp][bnk], worked);
+            ++bnk;
+        }
+        ++exp;
+    }
+}
+
+void HinksPix::UploadSmartRecieverData(int expan, int bank, std::vector<HinksSmartOutput> const& receivers, bool& worked)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("Building SmartReciever upload Expansion %d Bank %d:", expan, bank);
+    if (receivers.size() == 0) {
+        logger_base.info("No SmartReciever found");
+        return;
+    }
+    //{"CMD":"SCONFIG","BOARD":"0","Port4":"0","LIST":[{"V":"0,1,1,1,1,1"},{"V":"1,0,51,51,51,51"},{"V":"2,0,101,101,101,101"},{"V":"3,0,151,151,151,151"},{"V":"6,2,0,1,0,0"},{"V":"8,0,201,1,1,1"}]}
+    wxString requestString = wxString::Format("{\"CMD\":\"SCONFIG\",\"BOARD\":\"%d\",\"Port4\":\"%d\",\"LIST\":[",
+        expan, bank);
+    
+    for (int i = 0; i < receivers.size(); i++) {
+        receivers[i].Dump();
+        requestString += receivers[i].BuildCommand();
+        requestString += ",";
+    }
+    requestString.RemoveLast();//remove last ","
+    requestString += "]}";
+
+    auto const ret = GetJSONControllerData(GetJSONPostURL(), requestString);
+    if (ret.find("\"OK\"") == std::string::npos) {
+        logger_base.error("Failed Return %s", (const char*)ret.c_str());
+        worked = false;
+    }
+}
+
+void HinksPix::CalculateSmartRecievers(UDControllerPort* stringData)
+{
+    if (!stringData->AtLeastOneModelIsUsingSmartRemote())
+        return;
+    int port = stringData->GetPort() - 1;
+    int expansionBoard = port / 16;
+    int expansionPort = port % 16;
+    int bank = expansionPort / 4;
+    int subPort = (expansionPort % 4);
+    int32_t portStartChan = stringData->GetStartChannel();
+    for (const auto& it : stringData->GetModels()) {
+        if (it->GetSmartRemote() > 0) {
+            int id = it->GetSmartRemote() - 1;
+            int32_t startChan = it->GetStartChannel();
+            auto smartOut = std::find_if(_smartOutputs[expansionBoard][bank].begin(), _smartOutputs[expansionBoard][bank].end(), [id](auto const& so) {
+                    return so.id == id;
+                });
+            if (smartOut != _smartOutputs[expansionBoard][bank].end()) {
+                smartOut->portStartPixel[subPort] = ((startChan - portStartChan) / it->GetChannelsPerPixel()) + 1;
+            } else {
+                auto & smartPort = _smartOutputs[expansionBoard][bank].emplace_back(id);
+                if (it->GetSmartRemoteType().find("16") != std::string::npos && ((id % 4) == 0 ))
+                    smartPort.type = 1;
+                smartPort.portStartPixel[subPort] = ((startChan - portStartChan) / it->GetChannelsPerPixel()) + 1;
+            }
+        }
+    }
+}
+
 //Pixels Outputs use a controller start channel, this maps xlights uni/start chan to the controller channel
 int HinksPix::CalcControllerChannel(int universe,int startChan, std::map<int, int> const& uniChan) const
 {
@@ -410,6 +527,66 @@ wxString HinksPix::GetControllerRowData(int rowIndex, std::string const& url, st
         curl_easy_cleanup(curl);
     }
     return res;
+}
+
+//all of the Controller data is retrieved/set by "GET"ing different values
+std::string HinksPix::GetJSONControllerData(std::string const& url, std::string const& data)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    std::string res;
+    std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
+
+    logger_base.debug("Making request to HinksPix '%s'.", (const char*)url.c_str());
+
+    CURL* curl = curl_easy_init();
+    struct curl_slist* list = NULL;
+
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, std::string("http://" + baseIP + _baseUrl + url).c_str());
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20);
+
+        list = curl_slist_append(list, "Content-type: text/plain");
+
+        if (!data.empty()) {
+            list = curl_slist_append(list, std::string("DATA: " + data).c_str());
+            logger_base.debug("DATA='%s'.", (const char*)data.c_str());
+        }
+
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
+
+        std::string response_string;
+
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
+
+        curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1L);
+
+        /* Perform the request, res will get the return code */
+        CURLcode r = curl_easy_perform(curl);
+
+        if (r != CURLE_OK) {
+            logger_base.error("Failure to access %s: %s.", (const char*)url.c_str(), curl_easy_strerror(r));
+        }
+        else {
+            res = response_string;
+        }
+
+        /* always cleanup */
+        curl_easy_cleanup(curl);
+    }
+    return res;
+}
+
+bool HinksPix::GetControllerDatasJSON(const std::string& url, std::string const& data, wxJSONValue& val) {
+    std::string const sval = GetJSONControllerData(url, data);
+    if (!sval.empty()) {
+        wxJSONReader reader;
+        reader.Parse(sval, &val);
+        return true;
+    }
+    return false;
 }
 
 //create a map of E131 channels to the local controller channels  
@@ -768,8 +945,14 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
             auto pixOut = std::find_if(_pixelOutputs.begin(), _pixelOutputs.end(), [port](auto const& po) {return po.output == port; });
             if (pixOut != _pixelOutputs.end())
                 UpdatePortData(*pixOut, portData, map);
+
+            CalculateSmartRecievers(portData);
         }
     }
+
+    logger_base.info("Uploading SmartRecievers Information.");
+    progress.Update(40, "Uploading SmartRecievers Information.");
+    UploadSmartRecievers(worked);
 
     logger_base.info("Uploading String Output Information.");
     progress.Update(50, "Uploading String Output Information.");

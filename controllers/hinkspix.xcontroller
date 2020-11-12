@@ -48,6 +48,7 @@
 			<MaxPixelPortChannels>2040</MaxPixelPortChannels>
 			<UniversesMustBeSequential/>
 			<SupportsAutoLayout/>
+			<SupportsSmartRemotes/>
 			<PixelProtocols>
 				<Protocol>ws2811</Protocol>
 				<Protocol>ws2801</Protocol>
@@ -62,6 +63,10 @@
 				<Protocol>artnet</Protocol>
 				<Protocol>ddp</Protocol>
 			</InputProtocols>
+			<SmartRecieverTypes>
+				<Type>hinkspix4</Type>
+				<Type>hinkspix16</Type>
+			</SmartRecieverTypes>
 			<SupportsMultipleSimultaneousOutputProtocols/>
 		</Variant>
 	</Controller>

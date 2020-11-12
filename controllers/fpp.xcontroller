@@ -25,6 +25,9 @@
             <Protocol>dmx</Protocol>
             <Protocol>pixelnet</Protocol>
         </SerialProtocols>
+        <SmartRecieverTypes>
+            <Type>falcon4</Type>
+        </SmartRecieverTypes>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCapeTTYs" Base="FPP:BaseFPPSettings">
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
@@ -44,6 +47,9 @@
             <Protocol>Pixelnet-Open</Protocol>
             <Protocol>Renard</Protocol>
         </SerialProtocols>
+        <SmartRecieverTypes>
+            <Type>falcon4</Type>
+        </SmartRecieverTypes>
     </AbstractVariant>
 	<Controller Name="LED Panels">
 		<Variant Name="" ID="LED Panels" Base="FPP:BaseFPPSettings">
