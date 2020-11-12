@@ -65,6 +65,9 @@ const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_B = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_C = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_ABC = wxNewId();
 const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_BC = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_Type = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_ID = wxNewId();
+const long ControllerModelDialog::CONTROLLER_SMARTREMOTE_Cascade = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNEL = wxNewId();
 const long ControllerModelDialog::CONTROLLER_PROTOCOL = wxNewId();
 const long ControllerModelDialog::CONTROLLER_BRIGHTNESS = wxNewId();
@@ -103,6 +106,8 @@ wxColour __lightPurple(184, 150, 255, wxALPHA_OPAQUE);
 wxBrush __modelSRBBrush(__lightPurple);
 wxColour __lightOrange(255, 201, 150, wxALPHA_OPAQUE);
 wxBrush __modelSRCBrush(__lightOrange);
+wxColour __lightyellow(255, 252, 187, wxALPHA_OPAQUE);
+wxBrush __modelSRDBrush(__lightyellow);
 #pragma endregion
 
 #pragma region Object Classes
@@ -471,13 +476,28 @@ public:
                 dc.SetBrush(__modelSRNoneBrush);
                 break;
             case 1:
+            case 5:
+            case 9:
+            case 13:
                 dc.SetBrush(__modelSRABrush);
                 break;
             case 2:
+            case 6:
+            case 10:
+            case 14:
                 dc.SetBrush(__modelSRBBrush);
                 break;
             case 3:
+            case 7:
+            case 11:
+            case 15:
                 dc.SetBrush(__modelSRCBrush);
+                break;
+            case 4:
+            case 8:
+            case 12:
+            case 16:
+                dc.SetBrush(__modelSRDBrush);
                 break;
             }
         }
@@ -568,20 +588,32 @@ public:
         {
             if(_caps->SupportsSmartRemotes())
             {
-                mnu.AppendSeparator();
-                int sr = GetModel()->GetSmartRemote();
-                auto mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_None, "None");
-                mi->Check(sr == 0);
-                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_A, "*A*->b->c");
-                mi->Check(sr == 1);
-                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_B, "a->*B*->c");
-                mi->Check(sr == 2);
-                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_C, "a->b->*C*");
-                mi->Check(sr == 3);
-                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_ABC, "*A*->*B*->*C*");
-                mi->Check(sr == 4);
-                mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_BC, "a->*B*->*C*");
-                mi->Check(sr == 5);
+                if (GetModel()->IsHinksPixSR(GetModel()->GetSmartRemoteType())) {
+                    mnu.AppendSeparator();
+                    mnu.Append(ControllerModelDialog::CONTROLLER_SMARTREMOTE_ID, "Set SmartRemote ID");
+                    if (GetModel()->GetSmartRemote() != 0) {
+                        mnu.Append(ControllerModelDialog::CONTROLLER_SMARTREMOTE_None, "Clear SmartRemote");
+                        mnu.AppendSeparator();
+                        mnu.Append(ControllerModelDialog::CONTROLLER_SMARTREMOTE_Type, "Set SmartRemote Type");
+                        mnu.Append(ControllerModelDialog::CONTROLLER_SMARTREMOTE_Cascade, "Set SmartRemote Cascade Length");
+                    }
+                }
+                else {
+                    mnu.AppendSeparator();
+                    int sr = GetModel()->GetSmartRemote();
+                    auto mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_None, "None");
+                    mi->Check(sr == 0);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_A, "*A*->b->c");
+                    mi->Check(sr == 1);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_B, "a->*B*->c");
+                    mi->Check(sr == 2);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_C, "a->b->*C*");
+                    mi->Check(sr == 3);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_ABC, "*A*->*B*->*C*");
+                    mi->Check(sr == 4);
+                    mi = mnu.AppendRadioItem(ControllerModelDialog::CONTROLLER_SMARTREMOTE_BC, "a->*B*->*C*");
+                    mi->Check(sr == 5);
+                }
             }
             if (_caps->SupportsPixelPortBrightness())
             {
@@ -622,6 +654,36 @@ public:
         }
         else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_BC) {
             GetModel()->SetSmartRemote(5);
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_ID) {
+            //offset by 1 as "0" is none
+            wxNumberEntryDialog dlg(parent, "Enter the SmartRemote ID", "SmartRemote ID", "Model SmartRemote ID", GetModel()->GetSmartRemote() - 1, 0, 15);
+            if (dlg.ShowModal() == wxID_OK) {
+                GetModel()->SetSmartRemote(dlg.GetValue() + 1);
+            }
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_Cascade) {
+            wxNumberEntryDialog dlg(parent, "Enter the SmartRemote Cascade Length", "SmartRemote Cascade Length", "Model SmartRemote Cascade Length", GetModel()->GetSmartRemoteCascade() , 1, 16);
+            if (dlg.ShowModal() == wxID_OK) {
+                GetModel()->SetSmartRemoteCascade(dlg.GetValue());
+            }
+            return true;
+        }
+        else if (id == ControllerModelDialog::CONTROLLER_SMARTREMOTE_Type) {
+
+            wxArrayString choices;
+            for (const auto& it : GetModel()->GetSmartRemoteTypes())
+            {
+                choices.push_back(it);
+            }
+
+            wxSingleChoiceDialog dlg(parent, "Enter the SmartRemote Type", "SmartRemote Type", choices);
+            if (dlg.ShowModal() == wxID_OK)
+            {
+                GetModel()->SetSmartRemoteType(choices[dlg.GetSelection()]);
+            }
             return true;
         }
         else if (id == ControllerModelDialog::CONTROLLER_DMXCHANNEL) {
@@ -1415,6 +1477,8 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                 }
                 if (_caps != nullptr && !_caps->SupportsSmartRemotes()) {
                     m->SetSmartRemote(0);
+                    m->SetSmartRemoteType("");
+                    m->SetSmartRemoteCascade(1);
                 }
             }
             else {
@@ -1949,30 +2013,8 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     auto m = mob->GetModel();
     if (m == nullptr) return "";
 
-    std::string sr;
-    switch (m->GetSmartRemote()) {
-    case 0:
-        sr = "None";
-        break;
-    case 1:
-        sr = "A";
-        break;
-    case 2:
-        sr = "B";
-        break;
-    case 3:
-        sr = "C";
-        break;
-    case 4:
-        sr = "A->B->C";
-        break;
-    case 5:
-        sr = "B->C";
-        break;
-    default:
-        sr = "error";
-        break;
-    }
+    std::string sr = m->GetSmartRemoteType() + ":" + m->DecodeSmartRemote(m->GetSmartRemote());
+    
     _xLights->GetControllerDetailsForChannel(m->GetFirstChannel() + 1, controllerName, type, protocol, description,
                                              channelOffset, ip, universe, inactive, baud, startUniverse, endUniverse);
 

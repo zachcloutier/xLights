@@ -858,32 +858,35 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
         if (Model::IsPixelProtocol(protocol)) {
             std::string type = GetSmartRemoteType();
 
-            auto const& srTypes = GetSmartRemoteTypes();
-            if (srTypes.size()>1) {
-                wxArrayString srlist;
-                for (auto const& typ : srTypes) srlist.Add(typ);
-                grid->AppendIn(p, new wxEnumProperty("Smart Remote Type", "SmartRemoteType", srlist, wxArrayInt(), GetSmartRemoteTypeIndex( GetSmartRemoteType())));
+            if (GetSmartRemote() != 0) {
+                auto const& srTypes = GetSmartRemoteTypes();
+                    if (srTypes.size() > 1) {
+                        wxArrayString srlist;
+                            for (auto const& typ : srTypes) srlist.Add(typ);
+                            grid->AppendIn(p, new wxEnumProperty("Smart Remote Type", "SmartRemoteType", srlist, wxArrayInt(), GetSmartRemoteTypeIndex(GetSmartRemoteType())));
+                    }
+                    else {
+                        auto smt = grid->AppendIn(p, new wxStringProperty("Smart Remote Type", "SmartRemoteType", type));
+                            smt->ChangeFlag(wxPG_PROP_READONLY, true);
+                            smt->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                    }
             }
-            else {
-                auto smt = grid->AppendIn(p, new wxStringProperty("Smart Remote Type", "SmartRemoteType", type));
-                smt->ChangeFlag(wxPG_PROP_READONLY, true);
-                smt->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-            }
-            
+
             if (IsHinksPixSR(type)) {
                 grid->AppendIn(p, new wxEnumProperty("Smart Remote ID", "SmartRemote", SMART_REMOTES_HINKS, wxArrayInt(), GetSmartRemote()));
                 //auto srh = grid->AppendIn(p, new wxBoolProperty("Smart Remote Cascaded", "SmartRemoteCascaded", node->HasAttribute("SmartRemoteCascaded")));
                 //srh->SetAttribute("UseCheckbox", true);
+                if (GetSmartRemote() != 0) {
+                    auto srh = grid->AppendIn(p, new wxUIntProperty("Smart Remote Cascade Length", "SmartRemoteCascade", GetSmartRemoteCascade()));
+                    srh->SetAttribute("Min", 1);
 
-                auto srh = grid->AppendIn(p, new wxUIntProperty("Smart Remote Cascade Length", "SmartRemoteCascade", GetSmartRemoteCascade()));
-                srh->SetAttribute("Min", 1);
-
-                if (type.find("16") != std::string::npos) {
-                    srh->SetAttribute("Max", 16);
+                    if (type.find("16") != std::string::npos) {
+                        srh->SetAttribute("Max", 16);
+                    }
+                    else
+                        srh->SetAttribute("Max", 4);
+                    srh->SetEditor("SpinCtrl");
                 }
-                else
-                    srh->SetAttribute("Max", 4);
-                srh->SetEditor("SpinCtrl");
             }
             else
                 grid->AppendIn(p, new wxEnumProperty("Smart Remote", "SmartRemote", SMART_REMOTES, wxArrayInt(), GetSmartRemote()));
@@ -5877,7 +5880,8 @@ int Model::GetSmartTs() const
 int Model::GetSmartRemoteForString(int string) const
 {
     int sr = GetSmartRemote();
-
+    if (string == 0)
+        return sr;
     int smartRemoteChain = 3;
 
     wxString s = GetControllerConnection()->GetAttribute("Port", "0");

@@ -1686,12 +1686,15 @@ void LayoutPanel::BulkEditControllerConnection(int id)
 
     // get the first controller connection
     wxXmlNode *cc = nullptr;
+    bool hinks = false;
     
     for (Model* model: modelsToEdit) {
         if (model != nullptr) {
             std::string protocol = model->GetControllerProtocol();
             if (protocol != "") {
                 cc = model->GetControllerConnection();
+                if (model->IsHinksPixSR(model->GetSmartRemoteType()))
+                    hinks = true;
                 break;
             }
         }
@@ -1714,7 +1717,10 @@ void LayoutPanel::BulkEditControllerConnection(int id)
         ccbe = controller_connection_bulkedit::CEBE_CONTROLLERCOLOURORDER;
     }
     else if (id == ID_PREVIEW_BULKEDIT_SMARTREMOTE) {
-        ccbe = controller_connection_bulkedit::CEBE_SMARTREMOTE;
+        if(hinks)
+            ccbe = controller_connection_bulkedit::CEBE_SMARTREMOTE_HINKS;
+        else
+            ccbe = controller_connection_bulkedit::CEBE_SMARTREMOTE;
     }
     else if (id == ID_PREVIEW_BULKEDIT_CONTROLLERGROUPCOUNT) {
         ccbe = controller_connection_bulkedit::CEBE_CONTROLLERGROUPCOUNT;

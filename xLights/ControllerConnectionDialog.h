@@ -29,7 +29,8 @@ enum class controller_connection_bulkedit
     CEBE_CONTROLLERDIRECTION,
     CEBE_CONTROLLERNULLNODES,
     CEBE_CONTROLLERBRIGHTNESS,
-    CEBE_SMARTREMOTE
+    CEBE_SMARTREMOTE,
+	CEBE_SMARTREMOTE_HINKS
 };
 
 class wxXmlNode;
@@ -55,6 +56,7 @@ class ControllerConnectionDialog: public wxDialog
 		wxCheckBox* CheckBox_PixelDirection;
 		wxChoice* Choice_Protocol;
 		wxChoice* Choice_SmartRemote;
+		wxChoice* Choice_SmartRemote_ID;
 		wxChoice* ColorOrder;
 		wxChoice* PixelDirection;
 		wxSpinCtrl* Brightness;
@@ -62,6 +64,7 @@ class ControllerConnectionDialog: public wxDialog
 		wxSpinCtrl* NullNodes;
 		wxSpinCtrl* SpinCtrl_Port;
 		wxStaticText* SmartRemote;
+		wxStaticText* SmartRemoteID;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		//*)
@@ -80,6 +83,8 @@ class ControllerConnectionDialog: public wxDialog
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT3;
 		static const long ID_CHOICE2;
+		static const long ID_STATICTEXT4;
+		static const long ID_CHOICE3;
 		static const long ID_CHECKBOX1;
 		static const long ID_PIXEL_reverse;
 		static const long ID_CHECKBOX5;
