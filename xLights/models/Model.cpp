@@ -5885,7 +5885,7 @@ int Model::GetSmartRemoteForString(int string) const
     
     if (sr != 0 && IsHinksPixSR(GetSmartRemoteType())) {
         if(GetSmartRemoteCascade() < 2 && GetSmartRemoteType().find("16") == std::string::npos)
-            return sr;//todo: Add HinksPix Chaining
+            return sr;
         smartRemoteChain = GetSmartRemoteCascade();
         if (GetSmartRemoteType().find("16") != std::string::npos)
             smartRemoteChain = GetSmartRemoteCascade() * 4;
@@ -5898,13 +5898,9 @@ int Model::GetSmartRemoteForString(int string) const
         smartRemoteChain = 3;
         if (sr == 5) smartRemoteChain = 2;
 
-        //int perSmartRemote = 3;
-        //if (sr == 5) perSmartRemote = 2;
         int firstfirstmax = PORTS_PER_SMARTREMOTE - ((port - 1) % PORTS_PER_SMARTREMOTE);
         int firstmax = (smartRemoteChain * PORTS_PER_SMARTREMOTE) - ((port - 1) % PORTS_PER_SMARTREMOTE);
-        //if (sr == 5) firstmax = (2 * PORTS_PER_SMARTREMOTE) - ((port - 1) % PORTS_PER_SMARTREMOTE);
         int othermax = smartRemoteChain * PORTS_PER_SMARTREMOTE;
-        //if (sr == 5) othermax = 2 * PORTS_PER_SMARTREMOTE;
 
         if (string <= firstfirstmax) {
             sr = ((string - 1) / PORTS_PER_SMARTREMOTE) % smartRemoteChain + 4 - smartRemoteChain;
@@ -6393,19 +6389,16 @@ int Model::GetControllerPort(int string) const
     int port = wxAtoi(s);
     if (port > 0) {
         int sr = GetSmartRemote();
-        //bool cascade = false;
-
         int smartRemoteChain = 3;
 
         if (sr != 0 && IsHinksPixSR(GetSmartRemoteType())) {
             int cascade = GetSmartRemoteCascade();
             if (GetSmartRemoteCascade() > 1 || GetSmartRemoteType().find("16") != std::string::npos) {
-                //cascade = true;
                 smartRemoteChain = GetSmartRemoteCascade();
                 if (GetSmartRemoteType().find("16") != std::string::npos)
                     smartRemoteChain = GetSmartRemoteCascade() * 4;
 
-                port += /*(port - 1) -*/ (string - 1) / smartRemoteChain;
+                port += (string - 1) / smartRemoteChain;
             } 
             else {
                 port += string - 1;

@@ -87,21 +87,16 @@ class HinksSmartOutput
 {
 public:
     HinksSmartOutput( int id_) :
-        //expan(expan_), group(group_),
         id(id_), type(0),
         portStartPixel{ 1, 1, 1, 1 }
     { };
-    //int expan;
-    //int group;
     int id;
     int type;
     std::array<int,4> portStartPixel;
 
     bool operator==(const HinksSmartOutput& rhs) const
     {
-        return //expan == rhs.expan && 
-               //group == rhs.group && 
-               id == rhs.id ;
+        return id == rhs.id ;
     }
 
     void Dump() const;
@@ -120,7 +115,6 @@ class HinksPix : public BaseController
     std::vector<HinksPixOutput> _pixelOutputs;
     std::unique_ptr <HinksPixSerial> _serialOutput;
     std::vector<HinksSmartOutput> _smartOutputs[3][4];
-    //std::array<std::array<HinksSmartOutput, 4>, 3> a
     #pragma endregion 
 
     #pragma region Encode and Decode

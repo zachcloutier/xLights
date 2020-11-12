@@ -144,8 +144,6 @@ void HinksSmartOutput::Dump() const
 {
     static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("  ID %d Type %d Port 1 Start Pixel %d Port 2 Start Pixel %d Port 3 Start Pixel %d Port 4 Start Pixel %d",
-        //expan,
-        //group,
         id,
         type,
         portStartPixel[0],
