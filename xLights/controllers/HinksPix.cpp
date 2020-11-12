@@ -834,6 +834,7 @@ bool HinksPix::SetInputUniverses(ControllerEthernet* controller, wxWindow* paren
 
     auto it = outputs.begin();
     for (int j = 0; j < numberOfCalls; j++) {
+        bool post = false;
         wxString msg = wxString::Format("ROWCNT=16:ROW=%d:", j);
         for (int i = 0; i < 6; i++) {
             if (it != outputs.end()) {
@@ -845,15 +846,18 @@ bool HinksPix::SetInputUniverses(ControllerEthernet* controller, wxWindow* paren
                 cntr_start += (*it)->GetChannels();
                 it++;
                 index++;
+                post = true;
             }
             else {
                 msg += ",0,0,0,0,0,0";
             }
         }
         //post data
-        auto const res = GetControllerData(2001, msg);
-        if (res != "done")
-            worked = false;
+        if (post) {
+            auto const res = GetControllerData(2001, msg);
+            if (res != "done")
+                worked = false;
+        }
     }
 
     //reboot
