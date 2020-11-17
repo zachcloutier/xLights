@@ -3500,8 +3500,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         std::list<float> outy;
 
         // For 3D render view buffers recursively process each individual model...should be able to handle nested model groups
-        if (GetDisplayAs() == "ModelGroup" && camera != "2D")
-        {
+        if (GetDisplayAs() == "ModelGroup" && camera != "2D") {
             std::vector<Model *> models;
             wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
             int nc = 0;
@@ -3527,8 +3526,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         }
 
         for (int x = firstNode; x < newNodes.size(); x++) {
-            if (newNodes[x] == nullptr)
-            {
+            if (newNodes[x] == nullptr) {
                 logger_base.crit("CCC Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                 wxASSERT(false);
             }
@@ -3536,25 +3534,18 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                 float sx = it2.screenX;
                 float sy = it2.screenY;
 
-                if (ModelXml == nullptr)
-                {
+                if (ModelXml == nullptr) {
                     // if model xml is null then this isnt a real model which means it doesnt have a real location
                     // which means translatePoint is going to do strange things ... so dont call it
-                }
-                else
-                {
-                    if (pcamera == nullptr || camera == "2D")
-                    {
+                } else {
+                    if (pcamera == nullptr || camera == "2D") {
                         // Handle all of the 2D classic transformations
                         //float sz = 0;
                         // reintroducing the z coordinate as otherwise with some rotations we end up with a zero width buffer
                         float sz = it2.screenZ;
                         GetModelScreenLocation().TranslatePoint(sx, sy, sz);
-                    }
-                    else
-                    {
-                        if (GetDisplayAs() != "ModelGroup")  // ignore for groups since they will have already calculated their node positions from recursion call above
-                        {
+                    } else {
+                        if (GetDisplayAs() != "ModelGroup") { // ignore for groups since they will have already calculated their node positions from recursion call above
                             // Handle 3D from an arbitrary camera position
                             float sz = it2.screenZ;
                             GetModelScreenLocation().TranslatePoint(sx, sy, sz);
@@ -3593,20 +3584,24 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         // exteme locations which translate into crazy sized render buffers
         // this allows us to scale it back to the desired grid size
         float factor = 1.0;
-        if (pcamera != nullptr && camera != "2D" && GetDisplayAs() == "ModelGroup" && type == PER_PREVIEW)
-        {
+        if (pcamera != nullptr && camera != "2D" && GetDisplayAs() == "ModelGroup" && type == PER_PREVIEW) {
             int maxDimension = ((ModelGroup*)this)->GetGridSize();
-            if (maxDimension != 0 && (maxX - minX > maxDimension || maxY - minY > maxDimension))
-            {
+            if (maxDimension != 0 && (maxX - minX > maxDimension || maxY - minY > maxDimension)) {
                 // we need to resize all the points by this amount
                 factor = std::max(((float)(maxX - minX)) / (float)maxDimension, ((float)(maxY - minY)) / (float)maxDimension);
                 // But if it is already smaller we dont want to make it bigger
-                if (factor < 1.0)
-                {
+                if (factor < 1.0) {
                     factor = 1.0;
                 }
             }
         }
+        if (((maxX - minX) > 2048) || ((maxY - minY) > 2048)){
+            // this will result in a GIANT render buffer, lets reduce to something we can reasonably render
+            float fx = ((float)(maxX - minX)) / 2048.0f;
+            float fy = ((float)(maxY - minY)) / 2048.0f;
+            factor = fx > fy ? fx : fy;
+        }
+        
 
         minX /= factor;
         maxX /= factor;
@@ -3629,8 +3624,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             auto itx = outx.begin();
             auto ity = outy.begin();
             for (int x = firstNode; x < newNodes.size(); x++) {
-                if (newNodes[x] == nullptr)
-                {
+                if (newNodes[x] == nullptr) {
                     logger_base.crit("DDD Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                     wxASSERT(false);
                 }
@@ -5599,6 +5593,31 @@ Model* Model::GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                 else if (style == "Skulltronix Skull") {
                     dmx_type = "DmxSkulltronix";
                 }
+            }
+            model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
+            // Multiply by 5 because default custom model has parm1 and parm2 set to 5 and DMX model is 1 pixel
+            ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w * 5, h * 5);
+            model->SetLayoutGroup(lg);
+            model->Selected = true;
+            return model;
+        }
+        else if (root->GetName() == "dmxgeneral") {
+
+            // grab the attributes I want to keep
+            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+            auto x = model->GetHcenterPos();
+            auto y = model->GetVcenterPos();
+            auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
+            auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
+            auto lg = model->GetLayoutGroup();
+
+            std::string dmx_type = root->GetAttribute("DisplayAs");
+            // not a custom model so delete the default model that was created
+            if (model != nullptr) {
+                xlights->AddTraceMessage("GetXlightsModel converted model to DMX");
+                delete model;
             }
             model = xlights->AllModels.CreateDefaultModel(dmx_type, startChannel);
             model->SetHcenterPos(x);
