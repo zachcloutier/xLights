@@ -80,6 +80,16 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     wxString myString = "Hello";
     UnsavedRgbEffectsChanges = false;
 
+    // set backup directory early as we may need it in the next step
+    backupDirectory = GetXmlSetting("backupDir", showDirectory);
+    ObtainAccessToURL(backupDirectory);
+    if (!wxDir::Exists(backupDirectory)) {
+        logger_base.warn("Backup Directory not Found ... switching to Show Directory.");
+        backupDirectory = showDirectory;
+        SetXmlSetting("backupDir", showDirectory);
+        UnsavedRgbEffectsChanges = true;
+    }
+
     if (!effectsFile.FileExists()) {
         // file does not exist, so create an empty xml doc
         CreateDefaultEffectsXml();
@@ -266,10 +276,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     //Load FSEQ and Backup directory settings
     fseqDirectory = GetXmlSetting("fseqDir", showDirectory);
     renderCacheDirectory = GetXmlSetting("renderCacheDir", fseqDirectory); // we user fseq directory if no setting is present
-    backupDirectory = GetXmlSetting("backupDir", showDirectory);
     ObtainAccessToURL(renderCacheDirectory);
     ObtainAccessToURL(fseqDirectory);
-    ObtainAccessToURL(backupDirectory);
     if (!wxDir::Exists(fseqDirectory)) {
         logger_base.warn("FSEQ Directory not Found ... switching to Show Directory.");
         fseqDirectory = showDirectory;
@@ -281,12 +289,6 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         logger_base.warn("Render Cache Directory not Found ... switching to Show Directory.");
         renderCacheDirectory = showDirectory;
         SetXmlSetting("renderCacheDir", showDirectory);
-        UnsavedRgbEffectsChanges = true;
-    }
-    if (!wxDir::Exists(backupDirectory)) {
-        logger_base.warn("Backup Directory not Found ... switching to Show Directory.");
-        backupDirectory = showDirectory;
-        SetXmlSetting("backupDir", showDirectory);
         UnsavedRgbEffectsChanges = true;
     }
 
@@ -875,6 +877,9 @@ void xLightsFrame::UpdateModelsList()
 
     if (ModelsNode == nullptr) return; // this happens when xlights is first loaded
     if (ViewObjectsNode == nullptr) return; // this happens when xlights is first loaded
+
+    //abort any render as it will crash if the model changes
+    AbortRender();
 
     playModel = nullptr;
     PreviewModels.clear();

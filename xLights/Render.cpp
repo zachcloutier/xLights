@@ -556,7 +556,7 @@ public:
             bool freeze = false;
             if (ef != nullptr && buffer != nullptr)
             {
-                freeze = buffer->GetFreezeFrame(layer) <= GetEffectFrame(ef, frame, mainBuffer->GetFrameTimeInMS());
+                freeze = buffer->GetFreezeFrame(layer) != 999999 && buffer->GetFreezeFrame(layer) <= GetEffectFrame(ef, frame, mainBuffer->GetFrameTimeInMS());
             }
 
             if ((!persist && !freeze) || info.currentEffects[layer] == nullptr || info.currentEffects[layer]->GetEffectIndex() == -1) {
@@ -1550,7 +1550,7 @@ void xLightsFrame::RenderDirtyModels() {
     Render(models, restricts, startframe, endframe, false, true, [] {});
 }
 
-bool xLightsFrame::AbortRender()
+bool xLightsFrame::AbortRender(int maxTimeMS)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Aborting rendering ...");
@@ -1565,10 +1565,12 @@ bool xLightsFrame::AbortRender()
         }
     }
 
+    int maxLoops = maxTimeMS;
+    maxLoops /= 10;   //doing a 10ms sleep
     //must wait for the rendering to complete
     logger_base.info("Aborting %d renderers", abortCount);
     int loops = 0;
-    while (!renderProgressInfo.empty()) {
+    while (!renderProgressInfo.empty() && loops < maxLoops) {
         loops++;
         wxMilliSleep(10);
         wxYield(); // not sure this is advisable ... but it makes the app look responsive

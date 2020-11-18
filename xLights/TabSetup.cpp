@@ -796,6 +796,26 @@ bool xLightsFrame::SaveNetworksFile() {
     static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
     logger_work.debug("        SaveNetworksFile.");
 
+    // if any of the controllers are in auto layout mode ... recalulate them
+    bool autoLayout = false;
+    for (const auto& it : _outputManager.GetControllers()) {
+        if (it->IsAutoLayout()) {
+            autoLayout = true;
+            break;
+        }
+    }
+
+    if (autoLayout) {
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerModelDialog::ControllerModelDialog");
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerModelDialog::ControllerModelDialog");
+        
+        // Now need to let all the recalculations work
+        while (!DoAllWork()) {
+            // dont get into a redraw loop from here
+            GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        }
+    }
+
     if (_outputManager.Save()) {
         UnsavedNetworkChanges = false;
 #ifdef __WXOSX__
@@ -986,6 +1006,8 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         BaseObject* mm = m;
         if (mm == nullptr) mm = _outputModelManager.GetModelToReload();
         if (mm != nullptr) {
+            //abort any render as it might crash if the model changes
+            AbortRender();
             mm->ReloadModelXml();
             //must unselect any effect as it might now be pointing at an invalid model/submodel/strand
             UnselectEffect();
@@ -1024,6 +1046,9 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
     if (work & OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS) {
         logger_work.debug("    WORK_MODELS_REWORK_STARTCHANNELS.");
         // Moves all the models around optimally
+        
+        //abort any render as it will crash if the model changes
+        AbortRender();
         if (AllModels.ReworkStartChannel())
         {
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "DoWork");
@@ -1558,7 +1583,7 @@ void xLightsFrame::SetControllersProperties() {
             auto eth = dynamic_cast<ControllerEthernet*>(controller);
             auto caps = GetControllerCaps(selections.front());
             if (caps != nullptr && caps->SupportsUpload() && usingip == 1) {
-                if (caps->SupportsInputOnlyUpload() && (eth == nullptr || (eth->GetProtocol() != OUTPUT_DDP && eth->GetProtocol() != OUTPUT_ZCPP))) {
+                if (caps->SupportsInputOnlyUpload() && (eth == nullptr || ((eth->GetProtocol() != OUTPUT_DDP || caps->NeedsDDPInputUpload()) && eth->GetProtocol() != OUTPUT_ZCPP))) {
                     ButtonUploadInput->Enable();
                 }
                 else {

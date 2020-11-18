@@ -19,7 +19,7 @@
 #define MINVOIDF -9.1234f
 #define MAXVOIDF 9.1234f
 
-#define VC_X_POINTS 100.0
+#define VC_X_POINTS 200.0
 
 class wxFileName;
 class AudioManager;
@@ -32,6 +32,10 @@ public:
     static float Normalise(float v)
     {
         return std::round(v * VC_X_POINTS) / VC_X_POINTS;
+    }
+    static float perPoint()
+    {
+        return (float)(1.0f / VC_X_POINTS);
     }
     float x;
     float y;

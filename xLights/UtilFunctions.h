@@ -17,6 +17,7 @@
 #include <string>
 #include <algorithm>
 
+#define AMPS_PER_PIXEL (0.055f)
 #define FORMATTIME(ms) (const char *)wxString::Format("%d:%02d.%03d", ((uint32_t)ms) / 60000, (((uint32_t)ms) % 60000) / 1000, ((uint32_t)ms) % 1000).c_str()
 
 // Consolidated set of utility functions
@@ -55,6 +56,10 @@ int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &da
 int GetxFadePort(int xfp);
 void OptimiseDialogPosition(wxDialog* dlg);
 wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress = "127.0.0.1");
+
+wxString ExpandNodes(const wxString& nodes);
+wxString CompressNodes(const wxString& nodes);
+
 inline long roundTo4(long i) {
     long remainder = i % 4;
     if (remainder == 0) {
@@ -77,6 +82,7 @@ inline double rand01()
 
 void SaveWindowPosition(const std::string& tag, wxWindow* window);
 void LoadWindowPosition(const std::string& tag, wxSize& size, wxPoint& position);
+int intRand(const int& min, const int& max);
 void SaveInt(const std::string& tag, int value);
 int LoadInt(const std::string& tag, int defaultValue);
 int NumberAwareStringCompare(const std::string &a, const std::string &b);
@@ -251,6 +257,7 @@ static inline double toDegrees(double radians) {
 bool IsExcessiveMemoryUsage(double physicalMultiplier = 0.95);
 std::list<std::string> GetLocalIPs();
 bool IsValidLocalIP(const std::string& ip);
+bool IsInSameSubnet(const std::string& ip1, const std::string& ip2, const std::string& mask = "255.255.255.0");
 
 void ViewTempFile(const wxString& content, const wxString& name = "temp", const wxString& type = "txt");
 void CheckMemoryUsage(const std::string& reason, bool onchangeOnly = false);

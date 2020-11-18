@@ -579,7 +579,7 @@ void ColorPanel::LoadAllPalettes()
 
 void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
 {
-    static wxRegEx cregex("^\\$color([0-9]): rgba\\(([^)]*)\\)");
+    static wxRegEx cregex("^\\$[^:]*: rgba\\(([^)]*)\\)");
 
     wxString filename;
     bool cont = directory.GetFirst(&filename, "*.xpalette", wxDIR_FILES);
@@ -627,8 +627,7 @@ void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
                 wxString line = text.ReadLine();
                 if (cregex.Matches(line))
                 {
-                    wxString cnum = cregex.GetMatch(line, 1);
-                    wxString rgb = cregex.GetMatch(line, 2);
+                    wxString rgb = cregex.GetMatch(line, 1);
                     wxArrayString comp = wxSplit(rgb, ',');
                     if (comp.size() == 4)
                     {
@@ -660,6 +659,46 @@ void ColorPanel::LoadPalettes(wxDir& directory, bool subdirs)
                 }
                 if (!found)
                 {
+                    _loadedPalettes.push_back(pal.ToStdString() + fn.GetFullName().ToStdString());
+                }
+            }
+        }
+        cont = directory.GetNext(&filename);
+    }
+
+    filename = "";
+    cont = directory.GetFirst(&filename, "*.svg", wxDIR_FILES);
+    while (cont) {
+
+        wxFileName fn(directory.GetNameWithSep() + filename);
+        wxXmlDocument svg;
+        svg.Load(directory.GetNameWithSep() + filename);
+
+        if (svg.IsOk()) {
+            wxString pal;
+            int cols = 0;
+            for (auto n = svg.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext()) {
+                if (n->GetName() == "rect") {
+                    if (n->HasAttribute("fill")) {
+                        pal += n->GetAttribute("fill") + ",";
+                        cols++;
+                    }
+                }
+            }
+            if (cols > 0) {
+                while (cols < 8) {
+                    pal += "#FFFFFF,";
+                    cols++;
+                }
+                bool found = false;
+                for (auto it = _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it) {
+                    wxString p(*it);
+                    if (p.BeforeLast(',') == pal) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
                     _loadedPalettes.push_back(pal.ToStdString() + fn.GetFullName().ToStdString());
                 }
             }

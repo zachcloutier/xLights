@@ -62,8 +62,8 @@ static const char* NODE_TYPE_VLUES[] = {
 };
 static wxArrayString NODE_TYPES(26, NODE_TYPE_VLUES);
 
-static const char *RGBW_HANDLING_VALUES[] = {"R=G=B -> W", "RGB Only", "White Only", "Advanced"};
-static wxArrayString RGBW_HANDLING(4, RGBW_HANDLING_VALUES);
+static const char *RGBW_HANDLING_VALUES[] = {"R=G=B -> W", "RGB Only", "White Only", "Advanced", "White On All"};
+static wxArrayString RGBW_HANDLING(5, RGBW_HANDLING_VALUES);
 
 static const char *PIXEL_STYLES_VALUES[] = {"Square", "Smooth", "Solid Circle", "Blended Circle"};
 static wxArrayString PIXEL_STYLES(4, PIXEL_STYLES_VALUES);
@@ -803,6 +803,18 @@ void Model::AddProperties(wxPropertyGridInterface* grid, OutputManager* outputMa
     DisableUnusedProperties(grid);
 }
 
+void Model::ClearIndividualStartChannels()
+{
+    // dont clear custom models
+    if (IsCustom()) return;
+
+    ModelXml->DeleteAttribute("Advanced");
+    // remove per strand start channels if individual isnt selected
+    for (int x = 0; x < 100; x++) {
+        ModelXml->DeleteAttribute(StartChanAttrName(x));
+    }
+}
+
 void Model::GetControllerProtocols(wxArrayString& cp, int& idx) {
 
     auto caps = GetControllerCaps();
@@ -989,7 +1001,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
             auto sp2 = grid->AppendIn(sp, new wxUIntProperty("Group Count", "ModelControllerConnectionPixelGroupCount",
                 wxAtoi(GetControllerConnection()->GetAttribute("groupCount", "1"))));
             sp2->SetAttribute("Min", 0);
-            sp2->SetAttribute("Max", 50);
+            sp2->SetAttribute("Max", 500);
             sp2->SetEditor("SpinCtrl");
             if (!node->HasAttribute("groupCount")) {
                 grid->DisableProperty(sp2);
@@ -1247,11 +1259,11 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelDimmingCurves");
         return 0;
     } else if (event.GetPropertyName() == "ModelChain") {
-		std::string modelChain = event.GetValue().GetString();
-		if (modelChain == "Beginning")
-		{
-			modelChain = "";
-		}
+        std::string modelChain = event.GetValue().GetString();
+        if (modelChain == "Beginning")
+        {
+            modelChain = "";
+        }
         SetModelChain(modelChain);
         if (modelChain != "")
         {
@@ -2935,24 +2947,24 @@ wxChar Model::GetChannelColorLetter(wxByte chidx) {
 
 char Model::EncodeColour(const xlColor& c)
 {
-	if (c.red > 0 && c.green == 0 && c.blue == 0)
-	{
-		return 'R';
-	}
-	if (c.red == 0 && c.green > 0 && c.blue == 0)
-	{
-		return 'G';
-	}
-	if (c.red == 0 && c.green == 0 && c.blue > 0)
-	{
-		return 'B';
-	}
-	if (c.red > 0 && c.red == c.green && c.red == c.blue)
-	{
-		return 'W';
-	}
+    if (c.red > 0 && c.green == 0 && c.blue == 0)
+    {
+        return 'R';
+    }
+    if (c.red == 0 && c.green > 0 && c.blue == 0)
+    {
+        return 'G';
+    }
+    if (c.red == 0 && c.green == 0 && c.blue > 0)
+    {
+        return 'B';
+    }
+    if (c.red > 0 && c.red == c.green && c.red == c.blue)
+    {
+        return 'W';
+    }
 
-	return 'X';
+    return 'X';
 }
 
 // Accepts any absolute channel number and if it happens to be used by this model a single character representing the channel colour is returned.
@@ -3595,7 +3607,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                 }
             }
         }
-        if (((maxX - minX) > 2048) || ((maxY - minY) > 2048)){
+        if ((type !=  PER_PREVIEW_NO_OFFSET) && (((maxX - minX) > 2048) || ((maxY - minY) > 2048))){
             // this will result in a GIANT render buffer, lets reduce to something we can reasonably render
             float fx = ((float)(maxX - minX)) / 2048.0f;
             float fy = ((float)(maxY - minY)) / 2048.0f;
@@ -4613,7 +4625,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
 
-	 ModelScreenLocation& screenLocation = GetModelScreenLocation();
+     ModelScreenLocation& screenLocation = GetModelScreenLocation();
 
     screenLocation.UpdateBoundingBox(Nodes);  // FIXME: Temporary...really only want to do this when something causes a boundary change
     screenLocation.PrepareToDraw(is_3d, allowSelected);
@@ -4767,7 +4779,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     }
 }
 
-wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt)
+wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip)
 {
     int w, h;
     preview->GetSize(&w, &h);
@@ -4787,7 +4799,9 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt)
     }
 
     float px = pt.x;
-    float py = h - pt.y;
+    float py = pt.y;
+    if(flip)
+        py = h - pt.y;
 
     int i = 1;
     for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
@@ -4818,6 +4832,75 @@ wxString Model::GetNodeNear(ModelPreview* preview, wxPoint pt)
         i++;
     }
     return "";
+}
+
+std::vector<int> Model::GetNodesInBoundingBox(ModelPreview* preview, wxPoint start, wxPoint end)
+{
+    int w, h;
+    preview->GetSize(&w, &h);
+    float scaleX = float(w) * 0.95 / GetModelScreenLocation().RenderWi;
+    float scaleY = float(h) * 0.95 / GetModelScreenLocation().RenderHt;
+    float scale = scaleY < scaleX ? scaleY : scaleX;
+
+    float pointScale = scale;
+    if (pointScale > 2.5) {
+        pointScale = 2.5;
+    }
+    if (pointScale > GetModelScreenLocation().RenderHt) {
+        pointScale = GetModelScreenLocation().RenderHt;
+    }
+    if (pointScale > GetModelScreenLocation().RenderWi) {
+        pointScale = GetModelScreenLocation().RenderWi;
+    }
+
+    std::vector<int> nodes;
+
+    float startpx = start.x;
+    float startpy = /*h -*/ start.y;
+    float endpx = end.x;
+    float endpy = /*h -*/ end.y;
+
+    if (startpx > endpx) {
+        float tmp = startpx;
+        startpx = endpx;
+        endpx = tmp;
+    }
+
+    if (startpy > endpy) {
+        float tmp = startpy;
+        startpy = endpy;
+        endpy = tmp;
+    }
+
+    int i = 1;
+    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
+        auto c = it->get()->Coords;
+        for (auto it2 = c.begin(); it2 != c.end(); ++it2)
+        {
+            float sx = it2->screenX;
+            float sy = it2->screenY;
+
+            if (!GetModelScreenLocation().IsCenterBased()) {
+                sx -= GetModelScreenLocation().RenderWi / 2.0;
+                sy *= GetModelScreenLocation().GetVScaleFactor();
+                if (GetModelScreenLocation().GetVScaleFactor() < 0) {
+                    sy += GetModelScreenLocation().RenderHt / 2.0;
+                }
+                else {
+                    sy -= GetModelScreenLocation().RenderHt / 2.0;
+                }
+            }
+            sy = ((sy * scale) + (h / 2));
+            sx = (sx * scale) + (w / 2);
+
+            if (sx >= startpx && sx <= endpx &&
+                sy >= startpy && sy <= endpy) {
+                nodes.push_back( i);
+            }
+        }
+        i++;
+    }
+    return nodes;
 }
 
 void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
@@ -6067,11 +6150,11 @@ void Model::SetModelChain(const std::string& modelChain)
 
 std::string Model::GetModelChain() const
 {
-	const std::string chain = ModelXml->GetAttribute("ModelChain", "").ToStdString();
-	if (chain == "Beginning")
-	{
-		return "";
-	}
+    const std::string chain = ModelXml->GetAttribute("ModelChain", "").ToStdString();
+    if (chain == "Beginning")
+    {
+        return "";
+    }
     return chain;
 }
 
@@ -6489,7 +6572,11 @@ void Model::RestoreDisplayDimensions()
     if ((DisplayAs.rfind("Dmx", 0) != 0) && DisplayAs != "Image")
     {
         SetWidth(_savedWidth, true);
-        SetHeight(_savedHeight, true);
+        // We dont want to set the height of three point models
+        if (dynamic_cast<const ThreePointScreenLocation*>(&(GetModelScreenLocation())) == nullptr)
+        {
+            SetHeight(_savedHeight, true);
+        }
         SetDepth(_savedDepth, true);
     }
 }

@@ -342,7 +342,8 @@ public:
     virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator& solidVa3, DrawGLUtils::xl3Accumulator& transparentVa3, DrawGLUtils::xl3Accumulator& lva, bool is_3d = false, const xlColor* color = NULL, bool allowSelected = false, bool wiring = false, bool highlightFirst = false, int highlightpixel = 0);
     virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
     virtual int NodeRenderOrder() { return 0; }
-    wxString GetNodeNear(ModelPreview* preview, wxPoint pt);
+    wxString GetNodeNear(ModelPreview* preview, wxPoint pt, bool flip);
+    std::vector<int> GetNodesInBoundingBox(ModelPreview* preview, wxPoint start, wxPoint end);
 
     virtual bool CleanupFileLocations(xLightsFrame* frame) override;
     std::list<std::string> GetFaceFiles(const std::list<std::string>& facesUsed, bool all = false, bool includeFaceName = false) const;
@@ -405,6 +406,8 @@ public:
     float _savedDepth = 0;
     void SaveDisplayDimensions();
     void RestoreDisplayDimensions();
+
+    void ClearIndividualStartChannels();
 
     void GetMinScreenXY(float& minx, float& miny) const;
     virtual int GetNumStrands() const;

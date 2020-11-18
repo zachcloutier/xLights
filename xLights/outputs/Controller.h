@@ -65,6 +65,7 @@ protected:
     std::string _variant;                    // the variant of the controller
     bool _suppressDuplicateFrames = false;   // should we suppress duplicate fromes
     Output::PINGSTATE _lastPingResult = Output::PINGSTATE::PING_UNKNOWN; // last ping result
+    bool _tempDisable = false;
     
     std::map<std::string, std::string> _runtimeProperties;  // place to store various properties/state/etc that may be needed at runtime
 #pragma endregion
@@ -179,14 +180,29 @@ public:
     virtual bool IsManaged() const = 0;
     virtual bool CanSendData() const { return true; }
 
+    virtual bool CanTempDisable() const { return false; }
+    void TempDisable(bool disable)
+    {
+        if (CanTempDisable())             {
+            _tempDisable = disable;
+            for (const auto& it : _outputs)                 {
+                it->TempDisable(disable);
+            }
+        }
+    }
+    bool IsTempDisable() const { return _tempDisable; }
+
     // true if this controller needs the user to be able to edit id
     virtual bool IsNeedsId() const { return true; }
 
     // Used on test dialog
     virtual std::string GetLongDescription() const { return GetName() + "\n" + GetDescription(); }
 
+    // Long Description without Channels
+    virtual std::string GetShortDescription() const { return GetLongDescription(); }
+
     // Used in xSchedule
-    virtual std::string GetPingDescription() const { return GetName() + (IsActive() ? "" : " (Inactive)"); }
+    virtual std::string GetPingDescription() const { return GetName() + (IsActive() ? "" : " (Inactive)") + (IsTempDisable() ? _(" (Down)") : _("") ); }
 
     // return the controller type
     virtual std::string GetType() const = 0;

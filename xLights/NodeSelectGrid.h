@@ -63,7 +63,8 @@ class NodeSelectGrid: public wxDialog
 
         static const long NODESELECT_CUT;
         static const long NODESELECT_COPY;
-        static const long NODESELECT_PASTE;
+		static const long NODESELECT_PASTE;
+		static const long NODESELECT_FIND;
 
         std::vector<wxString> GetRowData();
         wxString GetNodeList(const bool sort = true);
@@ -130,11 +131,12 @@ class NodeSelectGrid: public wxDialog
 		void UpdateTextFromGrid();
 		void AddNode(int col, int row);
 		void RemoveNode(int col, int row);
-		wxString ExpandNodes(const wxString& nodes) const;
-		wxString CompressNodes(const wxString& nodes) const;
 		void OnTextCtrl_NodesLoseFocus(wxFocusEvent& event);
+		void OnKeyDown(wxKeyEvent& event);
 
 		void SaveSettings();
+		void GetMinMaxNode(long& min, long& max);
+		void Find();
 
         Model *model;
 

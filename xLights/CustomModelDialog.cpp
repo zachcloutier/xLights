@@ -82,6 +82,9 @@ const long CustomModelDialog::CUSTOMMODELDLGMNU_REVERSE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHIFT = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_INSERT = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_COMPRESS = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_FIND = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_FINDLAST = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_MAKESINGLENODE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHRINKSPACE10 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHRINKSPACE50 = wxNewId();
@@ -108,11 +111,13 @@ const long CustomModelDialog::CUSTOMMODELDLGMNU_WIREVERTICALTOP = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_WIREVERTICALBOTTOM = wxNewId();
 
 wxDEFINE_EVENT(EVT_GRID_KEY, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SWITCH_GRID, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(CustomModelDialog,wxDialog)
 	//(*EventTable(CustomModelDialog)
 	//*)
     EVT_COMMAND(wxID_ANY, EVT_GRID_KEY, CustomModelDialog::OnGridKey)
+    EVT_COMMAND(wxID_ANY, EVT_SWITCH_GRID, CustomModelDialog::OnSwitchGrid)
 END_EVENT_TABLE()
 
 class CustomNotebook : public wxNotebook
@@ -173,6 +178,15 @@ class CopyPasteGrid : public wxGrid
                 }
             }
 
+            if (event.ControlDown()|| event.CmdDown())
+            {
+                wxCommandEvent keyEvent(EVT_SWITCH_GRID);
+                keyEvent.SetInt(lines);
+                wxPostEvent(this, keyEvent);
+                event.StopPropagation();
+                return;
+            }
+
             newEvent.SetEventObject(m_win);
 
             if (event.GetWheelAxis() == wxMOUSE_WHEEL_HORIZONTAL)
@@ -204,7 +218,7 @@ class CopyPasteGrid : public wxGrid
 
     void DoOnChar(wxKeyEvent& event)
     {
-        wxChar uc = event.GetUnicodeKey();
+        wxChar uc = event.GetKeyCode();
 
         switch (uc)
         {
@@ -241,6 +255,17 @@ class CopyPasteGrid : public wxGrid
             if (event.CmdDown() || event.ControlDown()) {
                 wxCommandEvent keyEvent(EVT_GRID_KEY);
                 keyEvent.SetInt(WXK_CONTROL_A);
+                wxPostEvent(this, keyEvent);
+                event.StopPropagation();
+            }
+            break;
+        case WXK_F4: // move fwd & stay
+        case WXK_F5: // move back & stay
+        case WXK_F7: // move fwd & go
+        case WXK_F8: // move back & go
+            if (!event.ShiftDown() && !event.CmdDown() && !event.ControlDown() && !event.AltDown()) {
+                wxCommandEvent keyEvent(EVT_GRID_KEY);
+                keyEvent.SetInt(event.GetKeyCode());
                 wxPostEvent(this, keyEvent);
                 event.StopPropagation();
             }
@@ -825,6 +850,11 @@ void CustomModelDialog::CopyLayer(bool forward, int layers)
     }
 
     // trigger update of what cells are used on other grids
+    UpdateGridColours();
+}
+
+void CustomModelDialog::UpdateGridColours()
+{
     wxBookCtrlEvent e;
     e.SetSelection(Notebook1->GetSelection());
     OnNotebook1PageChanged(e);
@@ -1390,6 +1420,44 @@ void CustomModelDialog::Rotate()
     }
 }
 
+void CustomModelDialog::GetMinMaxNode(long& min, long& max)
+{
+    max = 0;
+    min = 99999999;
+
+    for (auto grid : _grids) {
+        for (auto c = 0; c < grid->GetNumberCols(); c++) {
+            for (auto r = 0; r < grid->GetNumberRows(); ++r) {
+                wxString s = grid->GetCellValue(r, c);
+
+                if (s.IsEmpty() == false) {
+                    long v;
+                    if (s.ToCLong(&v) == true) {
+                        max = std::max(v, max);
+                        min = std::min(v, min);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void CustomModelDialog::MakeSingleNode()
+{
+    for (auto grid : _grids) {
+        for (auto c = 0; c < grid->GetNumberCols(); c++) {
+            for (auto r = 0; r < grid->GetNumberRows(); ++r) {
+                wxString s = grid->GetCellValue(r, c);
+
+                if (s.IsEmpty() == false) {
+                    grid->SetCellValue(r, c, "1");
+                }
+            }
+        }
+    }
+    UpdatePreview();
+}
+
 void CustomModelDialog::Insert(int selRow, int selCol)
 {
     long val;
@@ -1830,6 +1898,18 @@ void CustomModelDialog::OnGridKey(wxCommandEvent& event)
         Notebook1->SetSelection(Notebook1->GetPageCount()-1);
         GetLayerGrid(Notebook1->GetPageCount()-1)->SetGridCursor(row, col);
         break;
+    case WXK_F3:
+        PushPull(true, true); // fwd and stay
+        break;
+    case WXK_F4:
+        PushPull(false, true); // back and stay
+        break;
+    case WXK_F7:
+        PushPull(true, false); // fwd and go
+        break;
+    case WXK_F8:
+        PushPull(false, false); // back and go
+        break;
     default:
         wxASSERT(false);
         break;
@@ -1897,6 +1977,15 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     else if (id == CUSTOMMODELDLGMNU_COMPRESS)
     {
         Compress();
+    }
+    else if (id == CUSTOMMODELDLGMNU_FIND) {
+        Find();
+    }
+    else if (id == CUSTOMMODELDLGMNU_FINDLAST) {
+        FindLast();
+    }
+    else if (id == CUSTOMMODELDLGMNU_MAKESINGLENODE) {
+        MakeSingleNode();
     }
     else if (id == CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE)
     {
@@ -2467,6 +2556,9 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
     mnu.AppendSeparator();
     mnu.Append(CUSTOMMODELDLGMNU_DELETE, "Clear Cells");
     mnu.AppendSeparator();
+    mnu.Append(CUSTOMMODELDLGMNU_FIND, "Find Node");
+    mnu.Append(CUSTOMMODELDLGMNU_FINDLAST, "Find Last Node");
+    mnu.AppendSeparator();
 
     mnu.Append(CUSTOMMODELDLGMNU_FLIPH, "Horizontal Flip");
     mnu.Append(CUSTOMMODELDLGMNU_FLIPV, "Vertical Flip");
@@ -2480,6 +2572,7 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
     mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE10, "Shrink Space - Max 10%");
     mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE50, "Shrink Space - Max 50%");
     mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE99, "Shrink Space - Max 99%");
+    mnu.Append(CUSTOMMODELDLGMNU_MAKESINGLENODE, "Convert to Single Node");
     if (SpinCtrl_Depth->GetValue() > 1)
     {
         mnu.AppendSeparator();
@@ -2592,8 +2685,68 @@ void CustomModelDialog::AddPage()
     Connect(id, wxEVT_GRID_CELL_RIGHT_CLICK, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellRightClick);
     Connect(id, wxEVT_GRID_CELL_CHANGED, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellChange);
     Connect(id, wxEVT_GRID_SELECT_CELL, (wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellSelected);
+    grid->Connect(wxEVT_KEY_DOWN, (wxObjectEventFunction)&CustomModelDialog::OnGridKeyDown, 0, this);
 
     Connect(id, wxEVT_GRID_LABEL_RIGHT_CLICK, (wxObjectEventFunction)&CustomModelDialog::OnGridLabelRightClick);
+}
+
+void CustomModelDialog::PushPull(bool forward, bool stayOnLayer)
+{
+    auto current = GetActiveGrid();
+    int layer = Notebook1->GetSelection();
+    auto col = current->GetGridCursorCol();
+    auto row = current->GetGridCursorRow();
+
+    if (current->GetCellValue(row, col) == "") return;
+
+    CopyPasteGrid* target = nullptr;
+    int targetLayer = -1;
+
+    if (forward)         {
+        if (layer == 0) return;
+        targetLayer = layer - 1;
+    }
+    else         {
+        if (layer == Notebook1->GetPageCount() - 1) return;
+        targetLayer = layer + 1;
+    }
+
+    target = GetLayerGrid(targetLayer);
+    if (target->GetCellValue(row, col) != "") return;
+
+    target->SetCellValue(row, col, current->GetCellValue(row, col));
+    current->SetCellValue(row, col, "");
+
+    if (!stayOnLayer)         {
+        target->SetGridCursor(row, col);
+        Notebook1->SetSelection(targetLayer);
+    }
+
+    UpdateGridColours();
+}
+
+void CustomModelDialog::OnGridKeyDown(wxKeyEvent& event)
+{
+    if (event.ControlDown()) {
+        if (event.GetKeyCode() == 'F') {
+            Find();
+        }
+        else if (event.GetKeyCode() == 'X') {
+            CutOrCopyToClipboard(true);
+        }
+        else if (event.GetKeyCode() == 'C') {
+            CutOrCopyToClipboard(false);
+        }
+        else if (event.GetKeyCode() == 'V') {
+            Paste();
+        }
+        else {
+            event.Skip(true);
+        }
+    }
+    else {
+        event.Skip(true);
+    }
 }
 
 CopyPasteGrid* CustomModelDialog::GetActiveGrid() const
@@ -2621,41 +2774,55 @@ void CustomModelDialog::OnNotebook1PageChanged(wxNotebookEvent& event)
     CopyPasteGrid* prior = nullptr;
     if (!first) prior = _grids[Notebook1->GetSelection() - 1];
 
+    auto current = GetActiveGrid();
+
     CopyPasteGrid* next = nullptr;
     if (!last) next = _grids[Notebook1->GetSelection() + 1];
 
     wxColor priorc = wxColor(255, 200, 200);
     wxColor nextc = wxColor(200, 200, 255);
     wxColor priornextc = wxColor(200, 255, 200);
+    wxColor defaultColour = wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX);
 
     // Prevent firing if no grids created yet (aka still in setup())
     if (_grids.size() > 0)
     {
-
-        for (auto c = 0; c < GetActiveGrid()->GetNumberCols(); c++)
+        for (auto c = 0; c < current->GetNumberCols(); c++)
         {
-            for (auto r = 0; r < GetActiveGrid()->GetNumberRows(); ++r)
+            for (auto r = 0; r < current->GetNumberRows(); ++r)
             {
-                int state = 0;
+                if (_grids.size() == 1) {
 
-                if (prior != nullptr && !prior->GetCellValue(r, c).IsEmpty()) state += 1;
-                if (next != nullptr && !next->GetCellValue(r, c).IsEmpty()) state += 2;
+                    if (current->GetCellBackgroundColour(r, c) != defaultColour) {
+                        current->SetCellBackgroundColour(r, c, defaultColour);
+                    }
+                }
+                else {
+                    int state = 0;
 
-                if (state == 0)
-                {
-                    GetActiveGrid()->SetCellBackgroundColour(r, c, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-                }
-                else if (state == 1)
-                {
-                    GetActiveGrid()->SetCellBackgroundColour(r, c, priorc);
-                }
-                else if (state == 2)
-                {
-                    GetActiveGrid()->SetCellBackgroundColour(r, c, nextc);
-                }
-                else if (state == 3)
-                {
-                    GetActiveGrid()->SetCellBackgroundColour(r, c, priornextc);
+                    if (prior != nullptr && !prior->GetCellValue(r, c).IsEmpty()) state += 1;
+                    if (next != nullptr && !next->GetCellValue(r, c).IsEmpty()) state += 2;
+
+                    if (state == 0) {
+                        if (current->GetCellBackgroundColour(r, c) != defaultColour) {
+                            current->SetCellBackgroundColour(r, c, defaultColour);
+                        }
+                    }
+                    else if (state == 1) {
+                        if (current->GetCellBackgroundColour(r, c) != priorc) {
+                            current->SetCellBackgroundColour(r, c, priorc);
+                        }
+                    }
+                    else if (state == 2) {
+                        if (current->GetCellBackgroundColour(r, c) != nextc) {
+                            current->SetCellBackgroundColour(r, c, nextc);
+                        }
+                    }
+                    else if (state == 3) {
+                        if (current->GetCellBackgroundColour(r, c) != priornextc) {
+                            current->SetCellBackgroundColour(r, c, priornextc);
+                        }
+                    }
                 }
             }
         }
@@ -2683,6 +2850,7 @@ void CustomModelDialog::DeleteCells()
     }
     UpdatePreview();
 }
+
 void CustomModelDialog::WireSelectedHorizontal(long const id)
 {
     auto grid = GetActiveGrid();
@@ -2754,4 +2922,102 @@ void CustomModelDialog::WireSelectedVertical(long const id)
         }
     }
     UpdatePreview();
+}
+
+void CustomModelDialog::Find()
+{
+    long minNode;
+    long maxNode;
+    GetMinMaxNode(minNode, maxNode);
+
+    if (minNode == 0)         {
+        wxMessageBox("No nodes present.");
+        return;
+    }
+
+    wxNumberEntryDialog dlg(this, "Node to find.", "Node to find", "Node", 0, minNode, maxNode);
+    if (dlg.ShowModal() == wxID_OK) {
+        auto find = dlg.GetValue();
+
+        int g = 0;
+        for (auto grid : _grids) {
+            for (auto c = 0; c < grid->GetNumberCols(); c++) {
+                for (auto r = 0; r < grid->GetNumberRows(); ++r) {
+                    wxString s = grid->GetCellValue(r, c);
+                    if (s.IsEmpty() == false) {
+                        long v;
+                        if (s.ToCLong(&v) == true) {
+                            if (v == find) {
+                                // make this sell active
+                                Notebook1->ChangeSelection(g);
+                                grid->SetGridCursor(r, c);
+                                grid->MakeCellVisible(r, c);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+            g++;
+        }
+    }
+}
+
+void CustomModelDialog::FindLast()
+{
+    long minNode;
+    long maxNode;
+    GetMinMaxNode(minNode, maxNode);
+
+    if (minNode == 0) {
+        wxMessageBox("No nodes present.");
+        return;
+    }
+
+    auto find = maxNode;
+
+    int g = 0;
+    for (auto grid : _grids) {
+        for (auto c = 0; c < grid->GetNumberCols(); c++) {
+            for (auto r = 0; r < grid->GetNumberRows(); ++r) {
+                wxString s = grid->GetCellValue(r, c);
+                if (s.IsEmpty() == false) {
+                    long v;
+                    if (s.ToCLong(&v) == true) {
+                        if (v == find) {
+                            // make this sell active
+                            Notebook1->ChangeSelection(g);
+                            grid->SetGridCursor(r, c);
+                            grid->MakeCellVisible(r, c);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        g++;
+    }
+}
+
+void CustomModelDialog::OnSwitchGrid(wxCommandEvent& event)
+{
+    int moveVal = event.GetInt();
+    auto col = GetActiveGrid()->GetGridCursorCol();
+    auto row = GetActiveGrid()->GetGridCursorRow();
+
+    if (moveVal > 0) {
+        if (Notebook1->GetSelection() != 0) {
+            int newLayer = Notebook1->GetSelection() - 1;
+            Notebook1->SetSelection(Notebook1->GetSelection() - 1);
+            GetLayerGrid(newLayer)->SetGridCursor(row, col);
+        }
+    }
+    else {
+        if (Notebook1->GetSelection() != Notebook1->GetPageCount() - 1) {
+            int newLayer = Notebook1->GetSelection() + 1;
+            Notebook1->SetSelection(newLayer);
+            GetLayerGrid(newLayer)->SetGridCursor(row, col);
+        }
+    }
+    UpdateHighlight(-1, -1);
 }

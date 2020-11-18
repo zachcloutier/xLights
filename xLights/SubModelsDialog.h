@@ -16,6 +16,8 @@
 #include <wx/listctrl.h>
 #include <wx/xml/xml.h>
 
+#include <glm/glm.hpp>
+
 //(*Headers(SubModelsDialog)
 #include <wx/dialog.h>
 class wxButton;
@@ -46,20 +48,20 @@ wxDECLARE_EVENT(EVT_SMDROP, wxCommandEvent);
 
 class SubModelTextDropTarget : public wxTextDropTarget
 {
-	public:
-		SubModelTextDropTarget(wxWindow* owner, wxListCtrl* list, wxString type)
-		{
-			_owner = owner;
-			_list = list;
-			_type = type;
-		};
+    public:
+        SubModelTextDropTarget(wxWindow* owner, wxListCtrl* list, wxString type)
+        {
+            _owner = owner;
+            _list = list;
+            _type = type;
+        };
 
-		virtual bool OnDropText(wxCoord x, wxCoord y, const wxString &data) override;
-		virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
+        virtual bool OnDropText(wxCoord x, wxCoord y, const wxString &data) override;
+        virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
 
-		wxWindow* _owner;
-		wxListCtrl* _list;
-		wxString _type;
+        wxWindow* _owner;
+        wxListCtrl* _list;
+        wxString _type;
 };
 
 class SubModelsDialog : public wxDialog
@@ -68,16 +70,16 @@ class SubModelsDialog : public wxDialog
     public:
         SubModelInfo() {}
         SubModelInfo(const wxString &n) : name(n), oldName(n) {}
-		SubModelInfo(const SubModelInfo &n) : name(n.name), oldName(n.oldName),
-			vertical(n.vertical), isRanges(n.isRanges), subBuffer(n.subBuffer), strands(n.strands) {}
+        SubModelInfo(const SubModelInfo &n) : name(n.name), oldName(n.oldName),
+            vertical(n.vertical), isRanges(n.isRanges), subBuffer(n.subBuffer), strands(n.strands) {}
 
-		bool operator==(const SubModelInfo &n) const { 
-			return (name == n.name && oldName == n.oldName && vertical == n.vertical && 
-				isRanges == n.isRanges && subBuffer == n.subBuffer && strands == n.strands);
-		}
-		bool operator!=(const SubModelInfo &n) const {
-			return !(*this == n);
-		}
+        bool operator==(const SubModelInfo &n) const { 
+            return (name == n.name && oldName == n.oldName && vertical == n.vertical && 
+                isRanges == n.isRanges && subBuffer == n.subBuffer && strands == n.strands);
+        }
+        bool operator!=(const SubModelInfo &n) const {
+            return !(*this == n);
+        }
 
         wxString name;
         wxString oldName;
@@ -91,6 +93,13 @@ class SubModelsDialog : public wxDialog
     ModelPreview *modelPreview;
     SubBufferPanel *subBufferPanel;
     bool _isMatrix = false;
+
+    bool m_creating_bound_rect;
+    int m_bound_start_x;
+    int m_bound_start_y;
+    int m_bound_end_x;
+    int m_bound_end_y;
+    int mPointSize;
 
 public:
     std::vector<SubModelInfo*> _subModels;
@@ -114,6 +123,7 @@ public:
     wxButton* Button_ReverseNodes;
     wxButton* Button_ReverseRow;
     wxButton* Button_ReverseRows;
+    wxButton* Button_SortRow;
     wxButton* Button_Sub_Import;
     wxButton* Button_importCustom;
     wxButton* DeleteButton;
@@ -159,6 +169,7 @@ protected:
     static const long ID_BUTTON_MOVE_UP;
     static const long ID_BUTTON_MOVE_DOWN;
     static const long ID_BUTTON7;
+    static const long ID_BUTTON_SORT_ROW;
     static const long ID_BUTTON_DRAW_MODEL;
     static const long ID_PANEL2;
     static const long ID_PANEL3;
@@ -233,7 +244,19 @@ private:
     void OnNodesGridCellLeftDClick(wxGridEvent& event);
     void OnButton_importCustomClick(wxCommandEvent& event);
     void OnButton_ExportCustomClick(wxCommandEvent& event);
+    void OnButton_SortRowClick(wxCommandEvent& event);
     //*)
+
+    void OnPreviewLeftUp(wxMouseEvent& event);
+    void OnPreviewMouseLeave(wxMouseEvent& event);
+    void OnPreviewLeftDown(wxMouseEvent& event);
+    void OnPreviewLeftDClick(wxMouseEvent& event);
+    void OnPreviewMouseMove(wxMouseEvent& event);
+
+    void RenderModel();
+    void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
+    void SelectAllInBoundingRect(bool shiftdwn);
+    void RemoveNodes();
 
     void OnTextCtrl_NameText_KillFocus(wxFocusEvent& event);
 

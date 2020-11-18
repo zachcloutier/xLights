@@ -201,6 +201,7 @@
     <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
+    <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="AlignmentDialog.cpp" />
     <ClCompile Include="BatchRenderDialog.cpp" />
     <ClCompile Include="BulkEditColourPickerDialog.cpp" />
@@ -474,6 +475,7 @@
     <ClCompile Include="NodesGridCellEditor.cpp" />
     <ClCompile Include="NoteImportDialog.cpp" />
     <ClCompile Include="outputs\GenericSerialOutput.cpp" />
+    <ClCompile Include="outputs\KinetOutput.cpp" />
     <ClCompile Include="outputs\LorController.cpp" />
     <ClCompile Include="outputs\LorControllers.cpp" />
     <ClCompile Include="outputs\LOROptimisedOutput.cpp" />
@@ -622,6 +624,7 @@
     <ClInclude Include="..\xFade\wxLED.h" />
     <ClInclude Include="..\xSchedule\md5.h" />
     <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h" />
+    <ClInclude Include="AboutDialog.h" />
     <ClInclude Include="AlignmentDialog.h" />
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditColourPickerDialog.h" />
@@ -889,6 +892,7 @@
     <ClInclude Include="NodesGridCellEditor.h" />
     <ClInclude Include="NoteImportDialog.h" />
     <ClInclude Include="outputs\GenericSerialOutput.h" />
+    <ClInclude Include="outputs\KinetOutput.h" />
     <ClInclude Include="outputs\LorController.h" />
     <ClInclude Include="outputs\LorControllers.h" />
     <ClInclude Include="outputs\LOROptimisedOutput.h" />

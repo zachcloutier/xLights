@@ -65,6 +65,7 @@
 #include "../xLights/VideoReader.h"
 #include "../xLights/SpecialOptions.h"
 #include "../xLights/outputs/Output.h"
+#include "../xLights/outputs/ControllerEthernet.h"
 #include "RemoteModeConfigDialog.h"
 
 #include "../include/xs_save.xpm"
@@ -399,29 +400,29 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(1);
-    Panel2 = new wxPanel(this, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxRAISED_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+    Panel2 = new wxPanel(this, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     FlexGridSizer5 = new wxFlexGridSizer(0, 11, 0, 0);
-    BitmapButton_OutputToLights = new wxBitmapButton(Panel2, ID_BITMAPBUTTON1, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
+    BitmapButton_OutputToLights = new wxBitmapButton(Panel2, ID_BITMAPBUTTON1, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
     FlexGridSizer5->Add(BitmapButton_OutputToLights, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Playing = new wxBitmapButton(Panel2, ID_BITMAPBUTTON3, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
+    BitmapButton_Playing = new wxBitmapButton(Panel2, ID_BITMAPBUTTON3, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
     FlexGridSizer5->Add(BitmapButton_Playing, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_IsScheduled = new wxBitmapButton(Panel2, ID_BITMAPBUTTON6, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON6"));
+    BitmapButton_IsScheduled = new wxBitmapButton(Panel2, ID_BITMAPBUTTON6, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON6"));
     FlexGridSizer5->Add(BitmapButton_IsScheduled, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Random = new wxBitmapButton(Panel2, ID_BITMAPBUTTON2, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
+    BitmapButton_Random = new wxBitmapButton(Panel2, ID_BITMAPBUTTON2, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
     FlexGridSizer5->Add(BitmapButton_Random, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_PLLoop = new wxBitmapButton(Panel2, ID_BITMAPBUTTON4, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
+    BitmapButton_PLLoop = new wxBitmapButton(Panel2, ID_BITMAPBUTTON4, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
     FlexGridSizer5->Add(BitmapButton_PLLoop, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_StepLoop = new wxBitmapButton(Panel2, ID_BITMAPBUTTON5, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON5"));
+    BitmapButton_StepLoop = new wxBitmapButton(Panel2, ID_BITMAPBUTTON5, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON5"));
     FlexGridSizer5->Add(BitmapButton_StepLoop, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Unsaved = new wxBitmapButton(Panel2, ID_BITMAPBUTTON7, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
+    BitmapButton_Unsaved = new wxBitmapButton(Panel2, ID_BITMAPBUTTON7, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
     FlexGridSizer5->Add(BitmapButton_Unsaved, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Brightness = new BrightnessControl(Panel2,ID_CUSTOM1,wxDefaultPosition,wxSize(32,32),ZERO,wxDefaultValidator,_T("ID_CUSTOM1"));
     FlexGridSizer5->Add(Brightness, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_VolumeDown = new wxBitmapButton(Panel2, ID_BITMAPBUTTON8, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON8"));
+    BitmapButton_VolumeDown = new wxBitmapButton(Panel2, ID_BITMAPBUTTON8, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON8"));
     FlexGridSizer5->Add(BitmapButton_VolumeDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Custom_Volume = new VolumeDisplay(Panel2,ID_CUSTOM2,wxDefaultPosition,wxSize(32,32),ZERO,wxDefaultValidator,_T("ID_CUSTOM2"));
     FlexGridSizer5->Add(Custom_Volume, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_VolumeUp = new wxBitmapButton(Panel2, ID_BITMAPBUTTON9, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON9"));
+    BitmapButton_VolumeUp = new wxBitmapButton(Panel2, ID_BITMAPBUTTON9, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxBORDER_NONE, wxDefaultValidator, _T("ID_BITMAPBUTTON9"));
     FlexGridSizer5->Add(BitmapButton_VolumeUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel2->SetSizer(FlexGridSizer5);
     FlexGridSizer5->Fit(Panel2);
@@ -491,7 +492,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     FlexGridSizer4->Fit(Panel1);
     FlexGridSizer4->SetSizeHints(Panel1);
     FlexGridSizer1->Add(Panel1, 1, wxALL|wxEXPAND, 0);
-    Panel4 = new wxPanel(this, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxRAISED_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL4"));
+    Panel4 = new wxPanel(this, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxBORDER_RAISED|wxTAB_TRAVERSAL, _T("ID_PANEL4"));
     FlexGridSizer6 = new wxFlexGridSizer(0, 8, 0, 0);
     FlexGridSizer6->AddGrowableCol(1);
     StaticText_ShowDir = new wxStaticText(Panel4, ID_STATICTEXT1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
@@ -563,7 +564,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     MenuItem3 = new wxMenu();
     MenuItem_ModeFPPBroadcastMaster = new wxMenuItem(MenuItem3, ID_MNU_FPP_BROADCASTMASTER, _("FPP Broadcast"), wxEmptyString, wxITEM_CHECK);
     MenuItem3->Append(MenuItem_ModeFPPBroadcastMaster);
-    MenuItem_ModeFPPMulticastMaster = new wxMenuItem(MenuItem3, ID_MNU_FPP_MULTICAST, _("FPP Multicast"), wxEmptyString, wxITEM_CHECK);
+    MenuItem_ModeFPPMulticastMaster = new wxMenuItem(MenuItem3, ID_MNU_FPP_MULTICAST, _("FPP Multicast (Preferred)"), wxEmptyString, wxITEM_CHECK);
     MenuItem3->Append(MenuItem_ModeFPPMulticastMaster);
     MenuItem_ModeFPPUnicastMaster = new wxMenuItem(MenuItem3, ID_MNU_FPP_UNICASTMASTER, _("FPP Unicast"), wxEmptyString, wxITEM_CHECK);
     MenuItem3->Append(MenuItem_ModeFPPUnicastMaster);
@@ -707,6 +708,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxID_ANY, EVT_XYZZYEVENT, (wxObjectEventFunction)&xScheduleFrame::DoXyzzyEvent);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
 
+    ListView_Ping->Connect(wxEVT_MOTION, (wxObjectEventFunction)&xScheduleFrame::OnListView_PingMouseMove, nullptr, this);
+
     wxString userEmail;
     wxConfig* xlconfig = new wxConfig(_("xLights"));
     if (xlconfig != nullptr)
@@ -849,7 +852,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _timer.Start(rate / 2, false, "FrameTimer");
     _timerSchedule.Start(500, false, "ScheduleTimer");
 
-    StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + "   ");
+    StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + ":" + wxString::Format("%d", __schedule->GetOptions()->GetWebServerPort()) + "   ");
 
     StaticBitmap_WebIcon->SetBitmap(_nowebicon);
     StaticBitmap_Slow->SetBitmap(_nowebicon);
@@ -960,8 +963,8 @@ void xScheduleFrame::LoadSchedule()
         delete _webServer;
         _webServer = nullptr;
     }
-    _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort(), __schedule->GetOptions()->GetAPIOnly(), 
-                               __schedule->GetOptions()->GetPassword(), __schedule->GetOptions()->GetPasswordTimeout(), 
+    _webServer = new WebServer(__schedule->GetOptions()->GetWebServerPort(), __schedule->GetOptions()->GetAPIOnly(),
+                               __schedule->GetOptions()->GetPassword(), __schedule->GetOptions()->GetPasswordTimeout(),
                                __schedule->GetOptions()->GetAllowUnauth(), __schedule->GetOptions()->GetDefaultPage());
 
     if (wxFile::Exists(_showDir + "/xlights_networks.xml"))
@@ -1748,10 +1751,16 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
             _webServer->SetDefaultPage(__schedule->GetOptions()->GetDefaultPage());
         }
 
+        for (const auto c : __schedule->GetOutputManager()->GetControllers()) {
+            c->TempDisable(false);
+        }
+
         Schedule::SetCity(__schedule->GetOptions()->GetCity());
         __schedule->GetOutputManager()->SetParallelTransmission(__schedule->GetOptions()->IsParallelTransmission());
         OutputManager::SetRetryOpen(__schedule->GetOptions()->IsRetryOpen());
         __schedule->GetOutputManager()->SetSyncEnabled(__schedule->GetOptions()->IsSync());
+
+        StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + ":" + wxString::Format("%d", __schedule->GetOptions()->GetWebServerPort()) + "   ");
 
         VideoReader::SetHardwareAcceleratedVideo(__schedule->GetOptions()->IsHardwareAcceleratedVideo());
 
@@ -2025,6 +2034,31 @@ void xScheduleFrame::OnResize(wxSizeEvent& event)
     }
 
     Layout();
+}
+
+void xScheduleFrame::OnListView_PingMouseMove(wxMouseEvent& event)
+{
+    int flags = wxLIST_HITTEST_ONITEM;
+    long item = ListView_Ping->HitTest(event.GetPosition(), flags, nullptr);
+    if (item != wxNOT_FOUND) {
+        auto p = _pinger->GetPingerByIndex(item);
+        if (p != nullptr) {
+            if (ListView_Ping->GetToolTipText() != p->GetIP()) {
+                ListView_Ping->SetToolTip(p->GetIP());
+            }
+        }
+        else {
+            if (ListView_Ping->GetToolTipText() != "") {
+                ListView_Ping->SetToolTip("");
+            }
+        }
+    }
+    else {
+        if (ListView_Ping->GetToolTipText() != "") {
+            ListView_Ping->SetToolTip("");
+        }
+    }
+    event.Skip();
 }
 
 void xScheduleFrame::OnListView_RunningItemSelected(wxListEvent& event)
@@ -3290,6 +3324,21 @@ void xScheduleFrame::UpdateUI(bool force)
 
     logger_frame.debug("        Updated mode %ldms", sw.Time());
 
+    // disable any outputs where the ping has failed
+    if (_pinger != nullptr && __schedule->GetOptions()->IsDisableOutputOnPingFailure()) {
+        for (const auto c : __schedule->GetOutputManager()->GetControllers()) {
+            auto eth = dynamic_cast<ControllerEthernet*>(c);
+            if (eth != nullptr) {
+                auto p = _pinger->GetPinger(eth->GetIP());
+                if (p != nullptr) {
+                    if (p->IsLocal()) {
+                        c->TempDisable(p->GetPingResult() == Output::PINGSTATE::PING_ALLFAILED);
+                    }
+                }
+            }
+        }
+    }
+
     if (!minimiseUIUpdates && _pinger != nullptr)
     {
         ListView_Ping->Freeze();
@@ -3523,10 +3572,12 @@ void xScheduleFrame::DoXyzzyEvent(wxCommandEvent& event)
 
 void xScheduleFrame::OnListView_PingItemActivated(wxListEvent& event)
 {
-    std::string ip = event.GetItem().GetText().SubString(0, event.GetItem().GetText().Find(' ')-1).ToStdString();
-    if (IsIPValidOrHostname(ip))
-    {
-        ::wxLaunchDefaultBrowser("http://" + ip);
+    auto p = _pinger->GetPingerByIndex(event.GetIndex());
+    if (p != nullptr) {
+        auto ip = p->GetIP();
+        if (IsIPValidOrHostname(ip)) {
+            ::wxLaunchDefaultBrowser("http://" + ip);
+        }
     }
 }
 
