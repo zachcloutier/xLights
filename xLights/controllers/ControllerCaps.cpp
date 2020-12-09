@@ -526,7 +526,7 @@ std::list<std::string> ControllerCaps::GetAllProtocols() const
 
 std::list<std::string> ControllerCaps::GetSmartRecieverTypes() const
 {
-    if (!SupportsSmartRemotes()) return std::list<std::string>();
+    if (!SupportsSmartRemotes()) return { "" };
     return GetXmlNodeListContent(_config, "SmartRecieverTypes", "Type");
 }
 
