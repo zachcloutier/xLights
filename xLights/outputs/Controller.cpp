@@ -141,7 +141,6 @@ wxXmlNode* Controller::Save() {
     if (_fullxLightsControl) node->AddAttribute("FullxLightsControl", "TRUE");
     node->AddAttribute("DefaultBrightnessUnderFullControl", wxString::Format("%d", _defaultBrightnessUnderFullControl));
 
-    //if (_autoStartChannels) node->AddAttribute("AutoStartChannels", "1");
     node->AddAttribute("ActiveState", DecodeActiveState(_active));
     node->AddAttribute("AutoLayout", _autoLayout ? "1" : "0");
     node->AddAttribute("AutoUpload", _autoUpload && SupportsAutoUpload() ? "1" : "0");
@@ -350,10 +349,12 @@ void Controller::SetActive(const std::string& active)  {
     if (_active != a) { 
         _active = a;  
         _dirty = true; 
-        for (auto& it : _outputs) {
-            it->Enable(IsActive());
-        }
     } 
+
+    // always cascade it ... just in case as I have seen some cases where this gets out of sync
+    for (auto& it : _outputs) {
+        it->Enable(IsActive());
+    }
 }
 
 bool Controller::CanVisualise() const
@@ -643,8 +644,23 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         auto it = begin(vendors);
         std::advance(it, event.GetValue().GetLong());
         SetVendor(*it);
-        SetModel("");
-        SetVariant("");
+
+        auto models = ControllerCaps::GetModels(GetType(), *it);
+        if (models.size() == 2) {
+            SetModel(models.back());
+            auto variants = ControllerCaps::GetVariants(GetType(), *it, models.front());
+            if (variants.size() == 2) {
+                SetVariant(variants.back());
+            }
+            else {
+                SetVariant("");
+            }
+        }
+        else {
+            SetModel("");
+            SetVariant("");
+        }
+
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Vendor");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Vendor");
         return true;
@@ -654,9 +670,10 @@ bool Controller::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelMana
         auto it = begin(models);
         std::advance(it, event.GetValue().GetLong());
         SetModel(*it);
-        
+
         std::list<std::string> variants = ControllerCaps::GetVariants(GetType(), _vendor, *it);
         SetVariant(variants.front());
+
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Model");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "Controller::HandlePropertyEvent::Model");
         return true;
