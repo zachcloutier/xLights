@@ -8,7 +8,6 @@
 
 #include "Shaders/MetalShaderTypes.h"
 
-
 class xlMetalGraphicsContext : public xlGraphicsContext {
 public:
     xlMetalGraphicsContext(xlMetalCanvas *c);
@@ -17,9 +16,11 @@ public:
 
     virtual xlVertexAccumulator *createVertexAccumulator() override;
     virtual xlVertexColorAccumulator *createVertexColorAccumulator() override;
+    virtual xlVertexTextureAccumulator *createVertexTextureAccumulator() override;
     virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) override;
     virtual xlTexture *createTextureMipMaps(const std::vector<wxImage> &images) override;
     virtual xlTexture *createTexture(const wxImage &image) override;
+    virtual xlTexture *createTextureForFont(const xlFontInfo &font) override;
 
     // Setup the Viewport
     virtual void SetViewport(int x1, int y1, int x2, int y2, bool is3D = false) override;
@@ -45,6 +46,8 @@ public:
                              float x, float y, float x2, float y2,
                              float tx = 0.0, float ty = 0.0, float tx2 = 1.0, float ty2 = 1.0,
                              bool linearScale = true) override;
+    virtual void drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture) override;
+    virtual void drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, const xlColor &c) override;
 
 
     //manipulating the matrices
@@ -55,6 +58,7 @@ public:
     virtual void Scale(float w, float h, float z) override;
 
 
+    bool hasDrawable();
 protected:
     xlMetalCanvas *canvas;
     id<MTLCommandBuffer> buffer;
@@ -64,11 +68,13 @@ protected:
 
     void drawPrimitive(MTLPrimitiveType type, xlVertexAccumulator *vac, const xlColor &c);
     void drawPrimitive(MTLPrimitiveType type, xlVertexColorAccumulator *vac);
+    xlTexture *createTexture(const wxImage &image, bool pvt);
 
     bool setPipelineState(const std::string &name, const char *vShader, const char *fShader);
 
     bool blending = false;
     std::string lastPipeline;
+    bool lastPipelineBlend = false;
     FrameData frameData;
     bool frameDataChanged = true;
     std::stack<simd::float4x4> matrixStack;

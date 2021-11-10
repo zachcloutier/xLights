@@ -74,15 +74,13 @@ class Waveform : public GRAPHICS_BASE_CLASS
             float max;
         };
 
-        virtual xlColor ClearBackgroundColor();
+        virtual xlColor ClearBackgroundColor() const override;
+
+        void render();
+
 
     protected:
         xlVertexAccumulator *border = nullptr;
-
-        virtual bool UsesVertexTextureAccumulator() {return false;}
-        virtual bool UsesVertexColorAccumulator() {return true;}
-        virtual bool UsesVertexAccumulator() {return true;}
-        virtual bool UsesAddVertex()  {return false;}
 
     private:
       	DECLARE_EVENT_TABLE()
@@ -155,7 +153,6 @@ class Waveform : public GRAPHICS_BASE_CLASS
 
         void DrawWaveView(xlGraphicsContext *ctx, const WaveView &wv);
         void Paint( wxPaintEvent& event );
-        void renderGL();
         void UpdateMousePosition(int time);
       	void mouseMoved(wxMouseEvent& event);
         void mouseWheelMoved(wxMouseEvent& event);

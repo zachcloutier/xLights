@@ -423,7 +423,7 @@ void AddDebugLog(xlGLCanvas *c) {
 #endif
 
 
-DrawGLUtils::xlGLCacheInfo *Create33Cache(bool, bool, bool, bool, bool, bool, bool);
+DrawGLUtils::xlGLCacheInfo *Create33Cache();
 DrawGLUtils::xlGLCacheInfo *Create11Cache();
 
 void xlGLCanvas::DisplayWarning(const wxString& msg)
@@ -563,13 +563,7 @@ void xlGLCanvas::SetCurrentGLContext()
                 AddDebugLog(this);
             }
             logger_opengl.info("Try creating 3.3 Cache for %s", (const char*)_name.c_str());
-            LOG_GL_ERRORV(cache = Create33Cache(UsesVertexTextureAccumulator(),
-                UsesVertexColorAccumulator(),
-                UsesVertexAccumulator(),
-                UsesAddVertex(),
-                UsesVertex3Accumulator(),
-                UsesVertex3TextureAccumulator(),
-                UsesVertex3ColorAccumulator()));
+            LOG_GL_ERRORV(cache = Create33Cache());
             if (cache != nullptr) _ver = 3;
         }
         if (cache == nullptr) {
@@ -729,6 +723,9 @@ public:
     virtual xlVertexColorAccumulator *createVertexColorAccumulator() override {
         return new DrawGLUtils::xlVertexColorAccumulator();
     }
+    virtual xlVertexTextureAccumulator *createVertexTextureAccumulator() override {
+        return new DrawGLUtils::xlVertexTextureAccumulator();
+    }
     virtual xlTexture *createTextureMipMaps(const std::vector<wxBitmap> &bitmaps) override {
         xlGLTexture *t = new xlGLTexture();
         GLuint tid = 0;
@@ -749,6 +746,9 @@ public:
     }
     virtual xlTexture *createTexture(const wxImage &image) override {
         return new xlGLTexture(image);
+    }
+    virtual xlTexture *createTextureForFont(const xlFontInfo &font) override {
+        return createTexture(font.getImage().Mirror(false));
     }
 
 
@@ -807,6 +807,21 @@ public:
             glDisable(enableCapabilities);
         }
     }
+    virtual void drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture) override {
+        DrawGLUtils::xlVertexTextureAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexTextureAccumulator*>(vac);
+        xlGLTexture *t = (xlGLTexture*)texture;
+        v->id = t->image.getID();
+        v->forceColor = false;
+        DrawGLUtils::Draw(*v, GL_TRIANGLES, enableCapabilities);
+    }
+    virtual void drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, const xlColor &c) override {
+        DrawGLUtils::xlVertexTextureAccumulator *v = dynamic_cast<DrawGLUtils::xlVertexTextureAccumulator*>(vac);
+        xlGLTexture *t = (xlGLTexture*)texture;
+        v->id = t->image.getID();
+        v->forceColor = true;
+        v->color = c;
+        DrawGLUtils::Draw(*v, GL_TRIANGLES, enableCapabilities);
+    }
 
     virtual void enableBlending(bool e = true) override {
         if (e) {
@@ -848,11 +863,12 @@ public:
 };
 
 xlGraphicsContext *xlGLCanvas::PrepareContextForDrawing() {
+    return PrepareContextForDrawing(ClearBackgroundColor());
+}
+xlGraphicsContext* xlGLCanvas::PrepareContextForDrawing(const xlColor &bg) {
     InitializeGLContext();
-
     SetCurrentGLContext();
 
-    xlColor bg = ClearBackgroundColor();
     float r = bg.red;
     float g = bg.green;
     float b = bg.blue;
