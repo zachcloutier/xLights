@@ -23,6 +23,7 @@ public:
     virtual void Finalize(bool mayChange) {}
     virtual void SetVertex(uint32_t vertex, float x, float y, float z) {};
     virtual void FlushRange(uint32_t start, uint32_t len) {}
+    virtual xlVertexAccumulator* Flush() { FlushRange(0, getCount()); return this; }
 
 
     virtual void AddVertex(float x, float y) {
@@ -58,6 +59,7 @@ public:
     virtual void SetVertex(uint32_t vertex, float x, float y, float z) = 0;
     virtual void SetVertex(uint32_t vertex, const xlColor &c) = 0;
     virtual void FlushRange(uint32_t start, uint32_t len) {}
+    virtual xlVertexColorAccumulator* Flush() { FlushRange(0, getCount()); return this; }
 
 
     //various utilities for adding various shapes
@@ -97,28 +99,35 @@ public:
     virtual void Finalize(bool mayChangeV, bool mayChangeT) {}
     virtual void SetVertex(uint32_t vertex, float x, float y, float z, float tx, float ty) {};
     virtual void FlushRange(uint32_t start, uint32_t len) {}
+    virtual xlVertexTextureAccumulator* Flush() { FlushRange(0, getCount()); return this; }
 
 
     virtual void AddVertex(float x, float y, float tx, float ty) {
         AddVertex(x, y, 0, tx, ty);
     }
     virtual void AddFullTexture(float x, float y, float x2, float y2) {
+        AddTexture(x, y, x2, y2, 0, 0, 1, 1);
+    }
+
+    virtual void AddTexture(float x, float y, float x2, float y2, float tx, float ty, float tx2, float ty2) {
         PreAlloc(6);
-        AddVertex(x, y, 0, 0, 0);
-        AddVertex(x, y2, 0,0, 1);
-        AddVertex(x2, y2, 0, 1, 1);
-        AddVertex(x2, y2, 0, 1, 1);
-        AddVertex(x2, y, 0, 1, 0);
-        AddVertex(x, y, 0, 0, 0);
+        AddVertex(x, y, 0, tx, ty);
+        AddVertex(x, y2, 0, tx, ty2);
+        AddVertex(x2, y2, 0, tx2, ty2);
+        AddVertex(x2, y2, 0, tx2, ty2);
+        AddVertex(x2, y, 0, tx2, ty);
+        AddVertex(x, y, 0, tx, ty);
     }
 };
-
 
 
 class xlTexture {
 public:
     xlTexture() {}
     virtual ~xlTexture() {}
+
+    // mark the texture as immutable
+    virtual void Finalize() {}
 
     virtual void UpdatePixel(int x, int y, const xlColor &c, bool copyAlpha) = 0;
 };
