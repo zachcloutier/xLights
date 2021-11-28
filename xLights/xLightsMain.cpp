@@ -34,6 +34,7 @@
 
 #include <cctype>
 #include <cstring>
+#include <thread>
 
 #include "xLightsMain.h"
 #include "SplashDialog.h"
@@ -96,6 +97,7 @@
 #include "ExternalHooks.h"
 #include "ExportSettings.h"
 #include "GPURenderUtils.h"
+#include "ViewsModelsPanel.h"
 
 // Linux needs this
 #include <wx/stdpaths.h>
@@ -224,6 +226,7 @@ const long xLightsFrame::ID_MENU_BATCH_RENDER = wxNewId();
 const long xLightsFrame::ID_MENU_FPP_CONNECT = wxNewId();
 const long xLightsFrame::ID_MNU_BULKUPLOAD = wxNewId();
 const long xLightsFrame::ID_MENU_HINKSPIX_EXPORT = wxNewId();
+const long xLightsFrame::ID_MENU_RUN_SCRIPT = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
 const long xLightsFrame::ID_MNU_EXPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MNU_EXPORT_CONTROLLER_CONNECTIONS = wxNewId();
@@ -452,9 +455,11 @@ void AddEffectToolbarButtons(EffectManager& manager, xlAuiToolBar* EffectsToolBa
     EffectsToolBar->Realize();
 }
 
-xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
-    _sequenceElements(this), AllModels(&_outputManager, this),
-    jobPool("RenderPool"), AllObjects(this),
+xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id) :
+    _sequenceElements(this),
+    jobPool("RenderPool"),
+    AllModels(&_outputManager, this),
+    AllObjects(this),
     _presetSequenceElements(this), color_mgr(this)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -481,8 +486,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     Bind(EVT_SELECTED_EFFECT_CHANGED, &xLightsFrame::SelectedEffectChanged, this);
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
     wxHTTP::Initialize();
-
-    logger_base.debug("AA");
 
     //(*Initialize(xLightsFrame)
     wxBoxSizer* BoxSizer1;
@@ -840,6 +843,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     Menu1->Append(MenuItemBulkControllerUpload);
     MenuItemHinksPixExport = new wxMenuItem(Menu1, ID_MENU_HINKSPIX_EXPORT, _("HinksPix Export"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItemHinksPixExport);
+    MenuItemRunScript = new wxMenuItem(Menu1, ID_MENU_RUN_SCRIPT, _("Run Scripts"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItemRunScript);
     Menu1->AppendSeparator();
     mExportModelsMenuItem = new wxMenuItem(Menu1, ID_EXPORT_MODELS, _("E&xport Models"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(mExportModelsMenuItem);
@@ -1100,6 +1105,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     Connect(ID_MENU_FPP_CONNECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_FPP_ConnectSelected);
     Connect(ID_MNU_BULKUPLOAD,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBulkControllerUploadSelected);
     Connect(ID_MENU_HINKSPIX_EXPORT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemHinksPixExportSelected);
+    Connect(ID_MENU_RUN_SCRIPT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRunScriptSelected);
     Connect(ID_EXPORT_MODELS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmExportModelsMenuItemSelected);
     Connect(ID_MNU_EXPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExportEffectsSelected);
     Connect(ID_MNU_EXPORT_CONTROLLER_CONNECTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected);
@@ -1298,7 +1304,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     UnsavedNetworkChanges = false;
 
     UnsavedRgbEffectsChanges = false;
-    UnsavedPlaylistChanges = false;
     mStoredLayoutGroup = "Default";
 
     modelsChangeCount = 0;
@@ -1368,6 +1373,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
 
     modelPreview = layoutPanel->GetMainPreview();
     logger_base.debug("LayoutPanel setup done.");
+
+
 
 
     playIcon = wxBitmap(control_play_blue_icon);
@@ -1543,6 +1550,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) :
     logger_base.debug("Autosave interval: %d.", mAutoSaveInterval);
 
     config->Read("xFadePort", &_xFadePort, 0);
+
+    // overide ab setting from command line
+    if (ab != 0) {
+        _xFadePort = ab;
+    }
+
     logger_base.debug("xFadePort: %s.", _xFadePort == 0 ? "Disabled" : ((_xFadePort == 1) ? "A" : "B"));
     StartxFadeListener();
 
@@ -2179,15 +2192,12 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 
     // show/hide Layout Previews
     logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews");
-    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
-        LayoutGroup* grp = *it;
-        if (grp != nullptr) {
-            if (grp->GetMenuItem() == nullptr) {
-                logger_base.crit("ShowHideAllSequencerWindows grp->GetMenuItem() is null ... this is going to crash");
-            }
-            if (grp->GetMenuItem() && grp->GetMenuItem()->IsChecked()) {
-                grp->SetPreviewActive(show);
-            }
+    for (const auto& it : LayoutGroups) {
+        if (it->GetMenuItem() == nullptr) {
+            logger_base.crit("ShowHideAllSequencerWindows grp->GetMenuItem() is null ... this is going to crash");
+        }
+        if (it->GetMenuItem() && it->GetMenuItem()->IsChecked()) {
+            it->SetPreviewActive(show);
         }
     }
 
@@ -3708,7 +3718,7 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
     RecalcModels();
 
     // check the current sequence to ensure this analysis is in the log
-    CheckSequence(false);
+    CheckSequence(false, false);
 
     logger_base.debug("Dumping registry configuration:");
     wxConfigBase* config = wxConfigBase::Get();
@@ -4587,7 +4597,7 @@ bool compare_modelstartchannel(const Model* first, const Model* second)
     return firstmodelstart < secondmodelstart;
 }
 
-void xLightsFrame::CheckSequence(bool display)
+std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -4602,11 +4612,11 @@ void xLightsFrame::CheckSequence(bool display)
     wxFile f;
     wxString filename = wxFileName::CreateTempFileName("xLightsCheckSequence") + ".txt";
 
-    if (display) {
+    if (writeToFile || displayInEditor) {
         f.Open(filename, wxFile::write);
         if (!f.IsOpened()) {
             DisplayError("Unable to create results file for Check Sequence. Aborted.", this);
-            return;
+            return "";
         }
     }
 
@@ -6138,24 +6148,26 @@ void xLightsFrame::CheckSequence(bool display)
     if (f.IsOpened()) {
         f.Close();
 
-        wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
-        if (ft != nullptr) {
-            wxString command = ft->GetOpenCommand(filename);
+        if (displayInEditor) {
+            wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+            if (ft != nullptr) {
+                wxString command = ft->GetOpenCommand(filename);
 
-            if (command == "") {
+                if (command == "") {
+                    DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
+                } else {
+                    logger_base.debug("Viewing xLights Check Sequence results %s. Command: '%s'", (const char*)filename.c_str(), (const char*)command.c_str());
+                    wxUnsetEnv("LD_PRELOAD");
+                    wxExecute(command);
+                }
+                delete ft;
+            } else {
                 DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
             }
-            else {
-                logger_base.debug("Viewing xLights Check Sequence results %s. Command: '%s'", (const char*)filename.c_str(), (const char*)command.c_str());
-                wxUnsetEnv("LD_PRELOAD");
-                wxExecute(command);
-            }
-            delete ft;
-        }
-        else {
-            DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
         }
     }
+
+    return filename;
 }
 
 void xLightsFrame::ValidateEffectAssets()
@@ -6269,12 +6281,12 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, size_t& errcount, size_t& 
 
         bool renderCache = _enableRenderCache == "Enabled" || (_enableRenderCache == "Locked Only" && ef->IsLocked());
         std::list<std::string> warnings = re->CheckEffectSettings(sm, CurrentSeqXmlFile->GetMedia(), AllModels.GetModel(modelName), ef, renderCache);
-        for (auto s = warnings.begin(); s != warnings.end(); ++s) {
-            LogAndWrite(f, *s);
-            if (s->find("WARN:") != std::string::npos) {
+        for (const auto& s : warnings) {
+            LogAndWrite(f, s);
+            if (s.find("WARN:") != std::string::npos) {
                 warncount++;
             }
-            else if (s->find("ERR:") != std::string::npos) {
+            else if (s.find("ERR:") != std::string::npos) {
                 errcount++;
             }
         }
@@ -6397,7 +6409,7 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, size_t& errcount, size_t&
 
 void xLightsFrame::OnMenuItemCheckSequenceSelected(wxCommandEvent& event)
 {
-    CheckSequence(true);
+    CheckSequence(true, true);
 }
 
 void xLightsFrame::OnMenuItem_Help_ForumSelected(wxCommandEvent& event)
@@ -9050,85 +9062,9 @@ void xLightsFrame::OnxFadeServerEvent(wxSocketEvent & event)
     }
 }
 
-wxString xLightsFrame::ProcessXFadeMessage(wxString msg)
+wxString xLightsFrame::ProcessXFadeMessage(const wxString& msg)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (msg == "TURN_LIGHTS_ON")
-    {
-        logger_base.debug("xFade turning lights on.");
-        EnableOutputs(true);
-        return "SUCCESS";
-    }
-    else if (msg == "TURN_LIGHTS_OFF")
-    {
-        logger_base.debug("xFade turning lights off.");
-        DisableOutputs();
-        return "SUCCESS";
-    }
-    else if (msg.StartsWith("PLAY_JUKEBOX_BUTTON "))
-    {
-        int button = wxAtoi(msg.substr(sizeof("PLAY_JUKEBOX_BUTTON ") - 1));
-        logger_base.debug("xFade playing jukebox button %d.", button);
-
-        if (CurrentSeqXmlFile != nullptr)
-        {
-            jukeboxPanel->PlayItem(button);
-            return "SUCCESS";
-        }
-        else
-        {
-            logger_base.error("    Error - sequence not open.");
-            return "ERROR_SEQUENCE_NOT_OPEN";
-        }
-    }
-    else if (msg.StartsWith("GET_JUKEBOX_BUTTON_TOOLTIPS"))
-    {
-        if (CurrentSeqXmlFile != nullptr)
-        {
-            return "SUCCESS " + jukeboxPanel->GetTooltips();
-        }
-        else
-        {
-            logger_base.error("    Error - sequence not open.");
-            return "ERROR_SEQUENCE_NOT_OPEN";
-        }
-    }
-    else if (msg.StartsWith("GET_JUKEBOX_BUTTON_EFFECTPRESENT"))
-    {
-        if (CurrentSeqXmlFile != nullptr)
-        {
-            return "SUCCESS " + jukeboxPanel->GetEffectPresent();
-        }
-        else
-        {
-            logger_base.error("    Error - sequence not open.");
-            return "ERROR_SEQUENCE_NOT_OPEN";
-        }
-    }
-    else if (msg == "GET_SEQUENCE_NAME")
-    {
-        logger_base.debug("xFade getting sequence name.");
-
-        if (CurrentSeqXmlFile != nullptr)
-        {
-            return "SUCCESS " + CurrentSeqXmlFile->GetName();
-        }
-        else
-        {
-            logger_base.error("    Error - sequence not open.");
-            return "ERROR_SEQUENCE_NOT_OPEN";
-        }
-    }
-    else if (msg == "GET_E131_TAG")
-    {
-        logger_base.debug("xFade getting E1.31 tag.");
-
-        return "SUCCESS " + E131Output::GetTag();
-    }
-
-    logger_base.debug("xFade invalid request.");
-    return "ERROR_INVALID_REQUEST";
+    return ProcessAutomation(msg.ToStdString());
 }
 
 void xLightsFrame::StartxFadeListener()
@@ -9375,7 +9311,6 @@ void xLightsFrame::OnMenuItem_ZoomSelected(wxCommandEvent& event)
     //::wxLaunchDefaultBrowser("https://zoom.us/j/175801909");
     ::wxLaunchDefaultBrowser("https://zoom.us/j/175801909?pwd=ZU1hNzM5bjJpOGZ1d1BOb1BzMUFndz09");
 }
-
 
 void xLightsFrame::OnMenuItem_Generate2DPathSelected(wxCommandEvent& event)
 {
@@ -10107,4 +10042,12 @@ void xLightsFrame::ReplaceModelWithModelFixGroups(const std::string& oldModel, c
             mg->ModelRenamed(newModel, oldModel);
         }
     }
+}
+
+void xLightsFrame::OnMenuItemRunScriptSelected(wxCommandEvent& event)
+{
+    if (!_scriptsDialog) {
+        _scriptsDialog = std::make_unique<ScriptsDialog>(this);
+    }
+    _scriptsDialog->Show();
 }

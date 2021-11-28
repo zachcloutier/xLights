@@ -81,6 +81,7 @@
 #include "OutputModelManager.h"
 #include "models/Model.h"
 #include "SequencePackage.h"
+#include "ScriptsDialog.h"
 
 class wxDebugReport;
 
@@ -273,7 +274,7 @@ class xLightsFrame: public wxFrame
 {
 public:
 
-    xLightsFrame(wxWindow* parent,wxWindowID id = -1);
+    xLightsFrame(wxWindow* parent, int ab, wxWindowID id = -1);
     virtual ~xLightsFrame();
 
     enum PlayListIds
@@ -581,6 +582,7 @@ public:
     void OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent& event);
     void OnMenuItem_xScannerSelected(wxCommandEvent& event);
     void OnButton_OpenProxyClick(wxCommandEvent& event);
+    void OnMenuItemRunScriptSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -706,6 +708,7 @@ public:
     static const long ID_MENU_FPP_CONNECT;
     static const long ID_MNU_BULKUPLOAD;
     static const long ID_MENU_HINKSPIX_EXPORT;
+    static const long ID_MENU_RUN_SCRIPT;
     static const long ID_EXPORT_MODELS;
     static const long ID_MNU_EXPORT_EFFECTS;
     static const long ID_MNU_EXPORT_CONTROLLER_CONNECTIONS;
@@ -855,6 +858,7 @@ public:
     wxMenuItem* MenuItemEffectAssistWindow;
     wxMenuItem* MenuItemHinksPixExport;
     wxMenuItem* MenuItemLoadEditPerspective;
+    wxMenuItem* MenuItemRunScript;
     wxMenuItem* MenuItemSelectEffect;
     wxMenuItem* MenuItemShiftEffects;
     wxMenuItem* MenuItemShiftSelectedEffects;
@@ -973,7 +977,6 @@ public:
     long DragRowIdx;
     //wxListCtrl* DragListBox;
     bool UnsavedNetworkChanges = false;
-    bool UnsavedPlaylistChanges = false;
     int mSavedChangeCount = 0;
     int mLastAutosaveCount = 0;
     wxDateTime starttime;
@@ -1017,7 +1020,9 @@ public:
     void OnxFadeSocketEvent(wxSocketEvent & event);
     void OnxFadeServerEvent(wxSocketEvent & event);
     void StartxFadeListener();
-    wxString ProcessXFadeMessage(wxString msg);
+    wxString ProcessXFadeMessage(const wxString& msg);
+    std::string FindSequence(const std::string& seq);
+    std::string ProcessAutomation(const std::string& msg);
     void ShowACLights();
     void UpdateControllerSave();
     void UpdateLayoutSave();
@@ -1092,10 +1097,10 @@ public:
     const wxString& UserEMAIL() const { return _userEmail; }
     void SetUserEMAIL(const wxString &e);
 
-    const wxString& LinkedSave() const { return _linkedSave; }
+    const wxString& GetLinkedSave() const { return _linkedSave; }
     void SetLinkedSave(const wxString& e);
 
-    const wxString& LinkedControllerUpload() const { return _linkedControllerUpload; }
+    const wxString& GetLinkedControllerUpload() const { return _linkedControllerUpload; }
     void SetLinkedControllerUpload(const wxString& e);
 
     int SaveFSEQVersion() const { return _fseqVersion; }
@@ -1272,7 +1277,7 @@ public:
     void WriteLSPFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame, SeqDataType *dataBuf, int cpn);  //      LSP UserPatterns.xml
     void ReadXlightsFile(const wxString& FileName, wxString *mediaFilename = nullptr);
     void ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg);
-    void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
+    void WriteFalconPiFile(const wxString& filename, bool allowSparse = true); //  Falcon Pi Player *.fseq
     OutputManager* GetOutputManager() { return &_outputManager; };
     OutputModelManager* GetOutputModelManager() { return&_outputModelManager; }
     void WriteGIFForPreset(const std::string& preset);
@@ -1376,6 +1381,7 @@ protected:
     void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory, std::string& errors);
     void OpenRenderAndSaveSequences(const wxArrayString &filenames, bool exitOnDone);
     void OpenAndCheckSequence(const wxArrayString& origFilenames, bool exitOnDone);
+    std::string OpenAndCheckSequence(const std::string& origFilenames);
     void AddAllModelsToSequence();
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);
@@ -1402,8 +1408,9 @@ public:
     void SaveSequence();
     void SetSequenceTiming(int timingMS);
     bool CloseSequence();
-    void NewSequence();
+    void NewSequence(const std::string& media = "", uint32_t durationMS = 0);
     void SaveAsSequence();
+    void SaveAsSequence(const std::string& filename);
     void SetPasteByCell();
     void SetPasteByTime();
     void ShowSequenceSettings();
@@ -1555,6 +1562,7 @@ private:
     EffectsPanel* EffectsPanel1 = nullptr;
     SelectPanel *_selectPanel = nullptr;
     SequenceVideoPanel* sequenceVideoPanel = nullptr;
+    std::unique_ptr<ScriptsDialog> _scriptsDialog;
     int mMediaLengthMS;
 
     bool mSequencerInitialize = false;
@@ -1607,6 +1615,7 @@ private:
     void SequenceReplaySection(wxCommandEvent& event);
     void TogglePlay(wxCommandEvent& event);
     void ExportModel(wxCommandEvent& event);
+    bool DoExportModel(unsigned int startFrame, unsigned int endFrame, const std::string& model, const std::string& fn, const std::string& fmt, bool doRender);
     void ShowDisplayElements(wxCommandEvent& event);
     void ShowHidePreviewWindow(wxCommandEvent& event);
     void ShowHideAllPreviewWindows(wxCommandEvent& event);
@@ -1632,7 +1641,7 @@ private:
     std::map<int, std::list<float>> LoadMusicXMLFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track);
     void CreateNotes(EffectLayer* el, std::map<int, std::list<float>>& notes, int interval, int frames);
     std::string CreateNotesLabel(const std::list<float>& notes) const;
-    void CheckSequence(bool display);
+    std::string CheckSequence(bool displayInEditor, bool writeToFile);
     void ValidateEffectAssets();
     void CleanupRGBEffectsFileLocations();
     void CleanupSequenceFileLocations();

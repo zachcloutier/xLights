@@ -13,6 +13,7 @@
 #include <map>
 #include <string.h>
 #include <cctype>
+#include <thread>
 
 #include <curl/curl.h>
 
@@ -684,9 +685,10 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
     }
 
     bool cancelled = false;
-    progressDialog->SetTitle("FPP Upload");
+    if (progressDialog != nullptr) progressDialog->SetTitle("FPP Upload");
     logger_base.debug("FPP upload via http of %s.", (const char*)filename.c_str());
-    cancelled |= !progressDialog->Update(0, "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress);
+    if (progressDialog != nullptr)
+        cancelled |= !progressDialog->Update(0, "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress);
     int lastDone = 0;
 
     std::string ct = "Content-Type: application/octet-stream";
@@ -804,7 +806,7 @@ bool FPP::uploadFile(const std::string &filename, const std::string &file) {
         logger_base.warn("Curl did not upload file:  %d   %s", response_code, error);
         messages.push_back("ERROR Uploading file: " + filename + "     CURL response: " + std::to_string(i) + " - " + error);
     }
-    cancelled |= !progressDialog->Update(1000);
+    if (progressDialog != nullptr) cancelled |= !progressDialog->Update(1000);
     logger_base.info("FPPConnect Upload file %s  - Return: %d - RC: %d - File: %s", fullUrl.c_str(), i, response_code, filename.c_str());
 
     return data.cancelled | cancelled;
@@ -816,10 +818,13 @@ bool FPP::copyFile(const std::string &filename,
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
 
-    progressDialog->SetTitle("FPP Upload");
-    logger_base.debug("FPP upload via file copy of %s.", (const char*)filename.c_str());
-    cancelled |= !progressDialog->Update(0, "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress);
-    progressDialog->Show();
+    if (progressDialog != nullptr) {
+        progressDialog->SetTitle("FPP Upload");
+        logger_base.debug("FPP upload via file copy of %s.", (const char*)filename.c_str());
+        cancelled |= !progressDialog->Update(0, "Transferring " + wxFileName(filename).GetFullName() + " to " + ipAddress);
+        progressDialog->Show();
+    }
+
     wxFile in;
     in.Open(file);
 
@@ -842,20 +847,24 @@ bool FPP::copyFile(const std::string &filename,
                 done += read;
 
                 int prgs = done * 1000 / length;
-                cancelled |= !progressDialog->Update(prgs);
-                if (!cancelled) {
-                    cancelled = progressDialog->WasCancelled();
+                if (progressDialog != nullptr) {
+                    cancelled |= !progressDialog->Update(prgs);
+                    if (!cancelled) {
+                        cancelled = progressDialog->WasCancelled();
+                    }
                 }
             }
-            cancelled |= !progressDialog->Update(1000);
+            if (progressDialog != nullptr) cancelled |= !progressDialog->Update(1000);
             in.Close();
             out.Close();
         } else {
-            cancelled |= !progressDialog->Update(1000);
+            if (progressDialog != nullptr)
+                cancelled |= !progressDialog->Update(1000);
             logger_base.warn("   Copy of file %s failed ... target file %s could not be opened.", (const char *)file.c_str(), (const char *)target.c_str());
         }
     } else {
-        cancelled |= !progressDialog->Update(1000);
+        if (progressDialog != nullptr)
+            cancelled |= !progressDialog->Update(1000);
         logger_base.warn("   Copy of file %s failed ... file could not be opened.", (const char *)file.c_str());
     }
     return cancelled;
@@ -3281,4 +3290,63 @@ bool FPP::ValidateProxy(const std::string& to, const std::string& via)
         }
     }
     return false;
+}
+
+std::list<FPP*> FPP::GetInstances(wxWindow* frame, OutputManager* outputManager)
+{
+    std::list<FPP*> instances;
+
+    std::list<std::string> startAddresses;
+    std::list<std::string> startAddressesForced;
+
+    wxConfigBase* config = wxConfigBase::Get();
+    wxString force;
+    if (config->Read("FPPConnectForcedIPs", &force)) {
+        wxArrayString ips = wxSplit(force, '|');
+        wxString newForce;
+        for (const auto& a : ips) {
+            startAddresses.push_back(a);
+            startAddressesForced.push_back(a);
+        }
+    }
+    // add existing controller IP's to the discovery, helps speed up
+    // discovery as well as makes it more reliable to discover those,
+    // particularly if on a different subnet.   This also helps
+    // make sure actually configured controllers are found
+    // so the FPP Connect dialog is more likely to
+    // have the entire list allowing the uploads to then entire
+    // show network to be easier to do
+    for (auto& it : outputManager->GetControllers()) {
+        auto eth = dynamic_cast<ControllerEthernet*>(it);
+        if (eth != nullptr && eth->GetIP() != "") {
+            startAddresses.push_back(eth->GetIP());
+            if (eth->GetFPPProxy() != "") {
+                startAddresses.push_back(eth->GetFPPProxy());
+            }
+        }
+    }
+
+    Discovery discovery(frame, outputManager);
+    FPP::PrepareDiscovery(discovery, startAddresses);
+    discovery.Discover();
+    FPP::MapToFPPInstances(discovery, instances, outputManager);
+    instances.sort(sortByIP);
+
+    wxString newForce = "";
+    for (const auto& a : startAddressesForced) {
+        for (const auto& fpp : instances) {
+            if (case_insensitive_match(a, fpp->hostName) || case_insensitive_match(a, fpp->ipAddress)) {
+                if (newForce != "") {
+                    newForce.append(",");
+                }
+                newForce.append(a);
+            }
+        }
+    }
+    if (newForce != force) {
+        config->Write("FPPConnectForcedIPs", newForce);
+        config->Flush();
+    }
+
+    return instances;
 }

@@ -209,6 +209,8 @@
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="AlignmentDialog.cpp" />
+    <ClCompile Include="automation\automation.cpp" />
+    <ClCompile Include="automation\xLightsAutomations.cpp" />
     <ClCompile Include="BatchRenderDialog.cpp" />
     <ClCompile Include="BulkEditColourPickerDialog.cpp" />
     <ClCompile Include="BulkEditControls.cpp" />
@@ -549,6 +551,7 @@
     <ClCompile Include="RenderProgressDialog.cpp" />
     <ClCompile Include="ResizeImageDialog.cpp" />
     <ClCompile Include="SaveChangesDialog.cpp" />
+    <ClCompile Include="ScriptsDialog.cpp" />
     <ClCompile Include="SelectPanel.cpp" />
     <ClCompile Include="SelectTimingsDialog.cpp" />
     <ClCompile Include="SeqElementMismatchDialog.cpp" />
@@ -649,6 +652,7 @@
     <ClInclude Include="..\xSchedule\xSMSDaemon\Curl.h" />
     <ClInclude Include="AboutDialog.h" />
     <ClInclude Include="AlignmentDialog.h" />
+    <ClInclude Include="automation\automation.h" />
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditColourPickerDialog.h" />
     <ClInclude Include="BulkEditControls.h" />
@@ -989,6 +993,7 @@
     <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="ResizeImageDialog.h" />
     <ClInclude Include="SaveChangesDialog.h" />
+    <ClInclude Include="ScriptsDialog.h" />
     <ClInclude Include="SelectPanel.h" />
     <ClInclude Include="SelectTimingsDialog.h" />
     <ClInclude Include="SeqElementMismatchDialog.h" />
