@@ -16,7 +16,8 @@
 #include <wx/socket.h>
 #include <wx/mimetype.h>
 #include <wx/display.h>
-
+#include <wx/protocol/http.h>
+#include <wx/sstream.h>
 
 #include <random>
 #include <time.h>
@@ -29,6 +30,7 @@
 #include "../xSchedule/wxJSON/json_defs.h"
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xSchedule/wxJSON/jsonval.h"
+#include "../xSchedule/xSMSDaemon/Curl.h"
 
 #include <mutex>
 
@@ -1344,42 +1346,29 @@ void OptimiseDialogPosition(wxDialog* dlg)
 
 wxJSONValue xLightsRequest(int xFadePort, const wxString& message, const wxString& ipAddress)
 {
-    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    wxString msg;
-
-    wxSocketClient socket;
-    wxIPV4address addr;
-    addr.Hostname(ipAddress);
-    addr.Service(GetxFadePort(xFadePort));
-
-    if (socket.Connect(addr)) {
-        logger_base.debug("Sending xLights message %s", (const char*)message.c_str());
-        socket.WriteMsg(message.c_str(), message.size() + 1);
-        uint8_t buffer[1534];
-        memset(buffer, 0x00, sizeof(buffer));
-        int read = 0;
-        while (read == 0) {
-            socket.ReadMsg(buffer, sizeof(buffer) - 1);
-            read = socket.LastReadCount();
-            if (read == 0) wxMilliSleep(2);
-        }
-        msg = wxString((char*)buffer);
-        logger_base.debug("xLights sent response %s", (const char*)msg.c_str());
-    }
-    else {
-        logger_base.warn("Unable to connect to xLights on port %d", GetxFadePort(xFadePort));
+    std::string url = "http://" + ipAddress + ":" + std::to_string(GetxFadePort(xFadePort)) + "/xlDoAutomation";
+    int responseCode = 0;
+    auto resultString = Curl::HTTPSPost(url, message, "", "", "application/json", 30*60, {}, &responseCode);
+    if (resultString != "" && (responseCode == 200 || responseCode >= 500)) {
+        wxJSONValue result;
+        wxJSONReader reader;
+        reader.Parse(resultString, &result);
+        result["res"] = (int)responseCode;
+        return result;
     }
 
-    if (msg == "") {
-        msg = "{\"res\":504,\"msg\":\"Unable to connect.\"}";
-    }
-
+    wxString msg = "{\"res\":504,\"msg\":\"Unable to connect.\"}";
     wxJSONValue result;
     wxJSONReader reader;
     reader.Parse(msg, &result);
 
     return result;
+}
+bool xLightsRequest(std::string &result, int xFadePort, const wxString& request, const wxString& ipAddress) {
+    std::string url = "http://" + ipAddress + ":" + std::to_string(GetxFadePort(xFadePort)) + "/" + request;
+    int responseCode = 0;
+    result = Curl::HTTPSGet(url, "", "", 30*60, {}, &responseCode);
+    return responseCode == 200;
 }
 
 void ViewTempFile(const wxString& content, const wxString& name, const wxString& type)

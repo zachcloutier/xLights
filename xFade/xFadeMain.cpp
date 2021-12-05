@@ -25,12 +25,17 @@
 #include "../xLights/UtilFunctions.h"
 #include "UniverseEntryDialog.h"
 #include "Emitter.h"
-#include "MIDIListener.h"
 #include "SettingsDialog.h"
-#include "MIDIAssociateDialog.h"
 #include "UniverseData.h"
 #include "E131Receiver.h"
 #include "ArtNETReceiver.h"
+
+
+#ifndef __WXOSX__
+#include "MIDIListener.h"
+#include "MIDIAssociateDialog.h"
+#endif
+
 
 #include <log4cpp/Category.hh>
 
@@ -107,6 +112,10 @@ const long xFadeFrame::ID_LED2 = wxNewId();
 
 wxDEFINE_EVENT(EVT_FLASH, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TAG, wxCommandEvent);
+
+#ifdef __WXOSX__
+wxDEFINE_EVENT(EVT_MIDI, wxCommandEvent);
+#endif
 
 BEGIN_EVENT_TABLE(xFadeFrame,wxFrame)
     //(*EventTable(xFadeFrame)
@@ -458,10 +467,12 @@ void xFadeFrame::LoadState()
 
 xFadeFrame::~xFadeFrame()
 {
+#ifndef __WXOSX__
     for (const auto& it : _midiListeners) {
         it->Stop();
         //delete it;
     }
+#endif
 
     wxMilliSleep(100);
 
@@ -587,6 +598,7 @@ void xFadeFrame::OnMIDIEvent(wxCommandEvent& event)
 
 void xFadeFrame::SetMIDIForControl(wxString controlName, float parm)
 {
+#ifndef __WXOSX__
     int status, channel, data1, device, data2;
     _settings.LookupMIDI(controlName, device, status, channel, data1, data2);
 
@@ -597,6 +609,7 @@ void xFadeFrame::SetMIDIForControl(wxString controlName, float parm)
     }
     // This removes any unnecessary listeners the associate dialog added
     StartMIDIListeners();
+#endif
 }
 
 void xFadeFrame::OnResize(wxSizeEvent& event)
@@ -704,6 +717,7 @@ void xFadeFrame::OnUITimerTrigger(wxTimerEvent& event)
 
 void xFadeFrame::StartMIDIListeners()
 {
+#ifndef __WXOSX__
     auto devs = _settings.GetUsedMIDIDevices();
     for (auto it = begin(_midiListeners); it != end(_midiListeners);) {
         if (std::find(begin(devs), end(devs), (*it)->GetDeviceId()) == devs.end()) {
@@ -726,6 +740,7 @@ void xFadeFrame::StartMIDIListeners()
             _midiListeners.push_back(new MIDIListener(it, this));
         }
     }
+#endif
 }
 
 void xFadeFrame::SetFade()
@@ -777,9 +792,8 @@ void xFadeFrame::PressJukeboxButton(int button, bool left)
     wxButton* b = GetJukeboxButton(button, panel);
 
     if (b != nullptr) {
-        wxJSONValue result = xLightsRequest(port, wxString::Format("{\"cmd\":\"playJukebox\",\"button\":%d}", button), ip);
-
-        if (result["res"].AsInt() == 200) {
+        std::string resultString;
+        if (xLightsRequest(resultString, port, "playJukebox?button=" + std::to_string(button), ip)) {
             auto buttons = panel->GetChildren();
             for (const auto& bb : buttons) {
                 ((wxButton*)bb)->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
@@ -970,28 +984,24 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             }
         }
 
-        result = xLightsRequest(1, "{\"cmd\":\"getE131Tag\"}", _settings._leftIP);
-        if (result["res"].AsInt() == 200) {
-            _leftTag = result["tag"].AsString();
-        } else {
+        if (!xLightsRequest(_leftTag, 1, "e131Tag", _settings._leftIP)) {
             _leftTag = "";
         }
         TextCtrl_LeftTag->SetValue(_leftTag);
         UniverseData::SetLeftTag(_leftTag);
 
-        result = xLightsRequest(1, "{\"cmd\":\"getOpenSequence\"}", _settings._leftIP);
-        if (result["res"].AsInt() == 200) {
-            TextCtrl_LeftSequence->SetValue(result["seq"].AsString());
-        } else {
-            TextCtrl_LeftSequence->SetValue("No sequence loaded.");
+        std::string resultString;
+        if (!xLightsRequest(resultString, 1, "openSequence", _settings._leftIP)) {
+            resultString = "No sequence loaded.";
         }
+        TextCtrl_LeftSequence->SetValue(resultString);
 
-        result = xLightsRequest(1, "{\"cmd\":\"lightsOn\"}", _settings._leftIP);
+        xLightsRequest(resultString, 1, "lightsOn", _settings._leftIP);
     } else {
         Panel_Left->Enable(false);
     }
 
-    result = xLightsRequest(2, "{\"cmd\":\"getJukeboxButtonTooltips\"}", _settings._leftIP);
+    result = xLightsRequest(2, "{\"cmd\":\"getJukeboxButtonTooltips\"}", _settings._rightIP);
     if (result["res"].AsInt() == 200) {
         Panel_Right->Enable(true);
 
@@ -1011,7 +1021,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             }
         }
 
-        result = xLightsRequest(2, "{\"cmd\":\"getJukeboxButtonEffectPresent\"}", _settings._leftIP);
+        result = xLightsRequest(2, "{\"cmd\":\"getJukeboxButtonEffectPresent\"}", _settings._rightIP);
         if (result["res"].AsInt() == 200) {
             auto bs = result["effects"].AsArray();
 
@@ -1031,23 +1041,18 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             }
         }
 
-        result = xLightsRequest(2, "{\"cmd\":\"getE131Tag\"}", _settings._leftIP);
-        if (result["res"].AsInt() == 200) {
-            _rightTag = result["tag"].AsString();
-        } else {
+        if (!xLightsRequest(_rightTag, 2, "e131Tag", _settings._rightIP)) {
             _rightTag = "";
         }
         TextCtrl_RightTag->SetValue(_rightTag);
         UniverseData::SetRightTag(_rightTag);
-
-        result = xLightsRequest(2, "{\"cmd\":\"getOpenSequence\"}", _settings._leftIP);
-        if (result["res"].AsInt() == 200) {
-            TextCtrl_RightSequence->SetValue(result["seq"].AsString());
-        } else {
-            TextCtrl_RightSequence->SetValue("No sequence loaded.");
+        
+        
+        std::string resultString;
+        if (!xLightsRequest(resultString, 2, "openSequence", _settings._rightIP)) {
+            resultString = "No sequence loaded.";
         }
-
-        result = xLightsRequest(2, "{\"cmd\":\"lightsOn\"}", _settings._rightIP);
+        TextCtrl_RightSequence->SetValue(resultString);
     } else {
         Panel_Right->Enable(false);
     }
@@ -1187,17 +1192,17 @@ void xFadeFrame::OnTimer_StatusTrigger(wxTimerEvent& event)
     count++;
     uint32_t leftReceived = (_e131Receiver != nullptr ? _e131Receiver->GetLeftReceived() : 0) + (_artNETReceiver != nullptr ? _artNETReceiver->GetLeftReceived() : 0);
     uint32_t rightReceived = (_e131Receiver != nullptr ? _e131Receiver->GetRightReceived() : 0) + (_artNETReceiver != nullptr ? _artNETReceiver->GetRightReceived() : 0);
-    StatusBar1->SetStatusText(wxString::Format("Left: %lu", leftReceived), 0);
-    StatusBar1->SetStatusText(wxString::Format("Right: %lu", rightReceived), 2);
+    StatusBar1->SetStatusText(wxString::Format("Left: %u", leftReceived), 0);
+    StatusBar1->SetStatusText(wxString::Format("Right: %u", rightReceived), 2);
     if (_emitter != nullptr) {
-        StatusBar1->SetStatusText(wxString::Format("Sent: %lu", _emitter->GetSent()), 1);
+        StatusBar1->SetStatusText(wxString::Format("Sent: %u", _emitter->GetSent()), 1);
         if (count % 60 == 0) {
-            logger_base.debug("Activity - Left Received %lu, Right Received %lu, Sent %lu.", leftReceived, rightReceived, _emitter->GetSent());
+            logger_base.debug("Activity - Left Received %u, Right Received %u, Sent %u.", leftReceived, rightReceived, _emitter->GetSent());
         }
     } else {
         StatusBar1->SetStatusText("Sending disabled", 1);
         if (count % 60 == 0) {
-            logger_base.debug("Activity - Left Received %lu, Right Received %lu, Sent DISABLED.", leftReceived, rightReceived);
+            logger_base.debug("Activity - Left Received %u, Right Received %u, Sent DISABLED.", leftReceived, rightReceived);
         }
     }
 }
