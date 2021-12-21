@@ -32,7 +32,10 @@ jobs:
       uses: actions/checkout@master
 
     - name: Setup msbuild
-      uses: microsoft/setup-msbuild@v1
+      uses: microsoft/setup-msbuild@v1     
+            
+    - name: install Inno
+      run: choco install innosetup
       
     - name: Download wxWidgets
       run: 
@@ -41,6 +44,10 @@ jobs:
     - name: Build wxWidgets
       working-directory: ..\wxWidgets\
       run: msbuild /m .\build\msw\wx_vc16.sln /p:Configuration="Release" /p:Platform="x64"
+      
+    - name: Build xlDo
+      working-directory: xlDo
+      run: msbuild xlDo.sln /m /p:Configuration="Release" /p:Platform="x64"
 
     - name: Build xFade
       working-directory: xFade

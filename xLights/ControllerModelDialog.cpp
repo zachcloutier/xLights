@@ -2359,6 +2359,13 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
 
                 wxDropSource dragSource(this, dragCursor, dragCursor, dragCursor);
 
+                if (PanelController->GetToolTipText() != "") {
+                    PanelController->SetToolTip("");
+                }
+                if (PanelModels->GetToolTipText() != "") {
+                    PanelModels->SetToolTip("");
+                }
+
                 _dragging = dynamic_cast<ModelCMObject*>(it);
 
                 dragSource.SetData(dragData);
@@ -2371,9 +2378,63 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
     }
 }
 
+bool ControllerModelDialog::MaybeSetSmartRemote(wxKeyEvent& event)
+{
+    if (!event.ControlDown() && !event.CmdDown())
+        return false;
+
+    int keyCode = event.GetKeyCode();
+    if (keyCode >= 65 && keyCode <= 90)
+        keyCode += 32;
+
+    int remote = 0;
+    if (keyCode == 32) {
+        // this will set to none
+    } else if (keyCode >= 97 && keyCode <= 127) {
+        remote = keyCode - 32 - 64;
+    }
+    else {
+        return false;
+    }
+
+    if (_lastDropped != nullptr && _lastDropped->GetControllerCaps()->SupportsSmartRemotes() && remote <= _lastDropped->GetControllerCaps()->GetSmartRemoteCount()) {
+        _lastDropped->SetSmartRemote(remote);
+
+        while (!_xLights->DoAllWork()) {
+            // dont get into a redraw loop from here
+            _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        }
+        ReloadModels();
+
+        return true;
+    } 
+
+    return false;
+}
+
 void ControllerModelDialog::OnPanelControllerKeyDown(wxKeyEvent& event)
 {
-    ScrollToKey(event.GetKeyCode());
+    if (!MaybeSetSmartRemote(event))
+    {
+        ScrollToKey(event.GetKeyCode());
+    }
+    event.Skip();
+}
+
+void ControllerModelDialog::OnKeyDown(wxKeyEvent& event)
+{
+    if (!MaybeSetSmartRemote(event))
+    {
+        ScrollToKey(event.GetKeyCode());
+    }
+    event.Skip();
+}
+
+void ControllerModelDialog::OnPanelModelsKeyDown(wxKeyEvent& event)
+{
+    if (!MaybeSetSmartRemote(event)) {
+        ScrollToKey(event.GetKeyCode());
+    }
     event.Skip();
 }
 
@@ -3002,18 +3063,6 @@ void ControllerModelDialog::ScrollToKey(int keyCode)
     }
 }
 
-void ControllerModelDialog::OnKeyDown(wxKeyEvent& event)
-{
-    ScrollToKey(event.GetKeyCode());
-    event.Skip();
-}
-
-void ControllerModelDialog::OnPanelModelsKeyDown(wxKeyEvent& event)
-{
-    ScrollToKey(event.GetKeyCode());
-    event.Skip();
-}
-
 void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event) {
     wxPoint mouse = event.GetPosition();
 
@@ -3038,6 +3087,13 @@ void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event) {
             wxDropSource dragSource(this, dragCursor, dragCursor, dragCursor);
 
             _dragging = dynamic_cast<ModelCMObject*>(it);
+
+            if (PanelController->GetToolTipText() != "") {
+                PanelController->SetToolTip("");
+            }
+            if (PanelModels->GetToolTipText() != "") {
+                PanelModels->SetToolTip("");
+            }
 
             dragSource.SetData(dragData);
             dragSource.DoDragDrop(wxDragMove);
@@ -3141,6 +3197,7 @@ void ControllerModelDialog::OnPanelModelsMouseMove(wxMouseEvent& event) {
 
     std::string tt = "";
     if (_dragging == nullptr) {
+
         for (const auto& it : _models) {
             bool ishit = it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE;
 
