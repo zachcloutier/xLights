@@ -59,7 +59,7 @@ Source: "../../xSchedule/x64/Release/xSchedule.map"; DestDir: "{app}"; Flags: "i
 Source: "../../bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "../../bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: ignoreversion recursesubdirs
 Source: "../../include\xSchedule64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "../../xSchedule/API Documentation.txt"; DestDir: "{app}"
+Source: "../../documentation/xSchedule API Documentation.txt"; DestDir: "{app}"
 
 ; xCapture
 Source: "../../xCapture/x64/Release/xCapture.exe"; DestDir: "{app}"
@@ -82,7 +82,7 @@ Source: "../../include\xfade64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; xlDo
 Source: "../../xlDo/x64/Release/xlDo.exe"; DestDir: "{app}"
-Source: "../../xlDo/xlDo Commands.txt"; DestDir: "{app}"
+Source: "../../documentation/xlDo Commands.txt"; DestDir: "{app}"
 
 ; xSMSDaemon
 Source: "../../xSchedule/xSMSDaemon/x64/Release/xSMSDaemon.dll"; DestDir: "{app}"
@@ -141,6 +141,9 @@ Source: "../../controllers/*.*"; DestDir: "{app}/controllers"   ; Flags: ignorev
 
 ; Palettes
 Source: "../../palettes/*.*"; DestDir: "{app}/palettes"   ; Flags: ignoreversion recursesubdirs
+
+; Scripts
+Source: "../../scripts/*.*"; DestDir: "{app}/scripts"   ; Flags: ignoreversion recursesubdirs
 
 ; VC++ Redistributable
 Source: "vcredist/vc_redist.x64.exe"; DestDir: {tmp}; Flags: deleteafterinstall

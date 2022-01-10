@@ -272,6 +272,11 @@ void ModelManager::ResetModelGroups() const
             ((ModelGroup*)(it.second))->ResetModels();
         }
     }
+    for (const auto& it : models) {
+        if (it.second != nullptr && it.second->GetDisplayAs() == "ModelGroup") {
+            ((ModelGroup*)(it.second))->CheckForChanges();
+        }
+    }
 }
 
 std::string ModelManager::GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel, const std::string& protocol) const
@@ -1467,7 +1472,7 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
     }
     model->GetModelScreenLocation().previewW = previewW;
     model->GetModelScreenLocation().previewH = previewH;
-    if (model->GetModelScreenLocation().CheckUpgrade(node) == UPGRADE_EXEC_READ) {
+    if (model->GetModelScreenLocation().CheckUpgrade(node) == ModelScreenLocation::MSLUPGRADE::MSLUPGRADE_EXEC_READ) {
         model->GetModelScreenLocation().Read(node);
     }
     return model;

@@ -389,6 +389,7 @@ public:
     void PopTraceContext();
     void AddTraceMessage(const std::string &msg);
     void ClearTraceMessages();
+    bool ExportVideoPreview(wxString const& path);
 
 	void SetAudioControls();
     void ImportXLights(const wxFileName &filename);
@@ -404,6 +405,11 @@ public:
     void ImportLSP(const wxFileName &filename);
     void ImportVsa(const wxFileName &filename);
     void ImportSuperStar(const wxFileName &filename);
+    void CloneXLightsEffects(EffectLayer* target, EffectLayer* src, bool eraseExisting);
+    bool CloneXLightsEffects(const std::string& target,
+                             const std::string& source,
+                             SequenceElements& seqEl,
+                             bool eraseExisting);
     void SaveWorking();
     void SaveWorkingLayout();
     void PlayerError(const wxString& msg);
@@ -841,7 +847,6 @@ public:
     wxMenu* RecentShowFoldersMenu;
     wxMenuBar* MenuBar;
     wxMenuItem* ActionTestMenuItem;
-    wxMenuItem* MenuItem32;
     wxMenuItem* MenuItem33;
     wxMenuItem* MenuItem34;
     wxMenuItem* MenuItem35;
@@ -853,24 +858,34 @@ public:
     wxMenuItem* MenuItem49;
     wxMenuItem* MenuItem50;
     wxMenuItem* MenuItem51;
-    wxMenuItem* MenuItem52;
     wxMenuItem* MenuItemBackup;
     wxMenuItem* MenuItemBulkControllerUpload;
     wxMenuItem* MenuItemCheckSequence;
+    wxMenuItem* MenuItemColourDropper;
+    wxMenuItem* MenuItemColours;
     wxMenuItem* MenuItemConvert;
-    wxMenuItem* MenuItemEffectAssistWindow;
+    wxMenuItem* MenuItemDisplayElements;
+    wxMenuItem* MenuItemEffectAssist;
+    wxMenuItem* MenuItemEffectDropper;
+    wxMenuItem* MenuItemEffectSettings;
     wxMenuItem* MenuItemHinksPixExport;
+    wxMenuItem* MenuItemHousePreview;
+    wxMenuItem* MenuItemJukebox;
+    wxMenuItem* MenuItemLayerBlending;
+    wxMenuItem* MenuItemLayerSettings;
     wxMenuItem* MenuItemLoadEditPerspective;
+    wxMenuItem* MenuItemModelPreview;
     wxMenuItem* MenuItemRunScript;
     wxMenuItem* MenuItemSelectEffect;
     wxMenuItem* MenuItemShiftEffects;
     wxMenuItem* MenuItemShiftSelectedEffects;
     wxMenuItem* MenuItemUserDict;
+    wxMenuItem* MenuItemValueCurves;
+    wxMenuItem* MenuItemVideoPreview;
     wxMenuItem* MenuItemViewSaveAsPerspective;
     wxMenuItem* MenuItemViewSavePerspective;
     wxMenuItem* MenuItem_ACLIghts;
     wxMenuItem* MenuItem_CleanupFileLocations;
-    wxMenuItem* MenuItem_ColourDropper;
     wxMenuItem* MenuItem_CrashXLights;
     wxMenuItem* MenuItem_Donate;
     wxMenuItem* MenuItem_DownloadSequences;
@@ -890,7 +905,6 @@ public:
     wxMenuItem* MenuItem_Help_Isue_Tracker;
     wxMenuItem* MenuItem_Help_ReleaseNotes;
     wxMenuItem* MenuItem_ImportEffects;
-    wxMenuItem* MenuItem_Jukebox;
     wxMenuItem* MenuItem_KeyBindings;
     wxMenuItem* MenuItem_LogRenderState;
     wxMenuItem* MenuItem_LoudVol;
@@ -906,7 +920,6 @@ public:
     wxMenuItem* MenuItem_Update;
     wxMenuItem* MenuItem_UserManual;
     wxMenuItem* MenuItem_VQuietVol;
-    wxMenuItem* MenuItem_ValueCurves;
     wxMenuItem* MenuItem_VideoTutorials;
     wxMenuItem* MenuItem_ViewLog;
     wxMenuItem* MenuItem_ViewZoomIn;
@@ -1046,6 +1059,7 @@ public:
     void SetFSEQFolder(bool useShow, const std::string& folder);
     void GetRenderCacheFolder(bool& useShow, std::string& folder);
     void SetRenderCacheFolder(bool useShow, const std::string& folder);
+    void UpdateViewMenu();
 
     void GetBackupFolder(bool& useShow, std::string& folder);
     void SetBackupFolder(bool useShow, const std::string& folder);
@@ -1397,6 +1411,8 @@ protected:
     void StopNow();
     bool ShowFolderIsInBackup(const std::string showdir);
     bool ShowFolderIsInProgramFiles(const std::string showdir);
+    std::string PackageSequence(bool showDialogs = true);
+    std::string PackageDebugFiles(bool showDialogs = true);
 
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
     wxXmlDocument EffectsXml;
@@ -1638,8 +1654,8 @@ private:
     void LoadSequencer(xLightsXmlFile& xml_file);
     void DoLoadPerspective(wxXmlNode *p);
     void CheckForValidModels();
-    void ExportModels(wxString filename);
-    void ExportEffects(wxString filename);
+    void ExportModels(wxString const& filename);
+    void ExportEffects(wxString const& filename);
     int ExportElement(wxFile& f, Element* e, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles);
     int ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles);
     std::map<int, std::list<float>> LoadPolyphonicTranscription(AudioManager* audio, int intervalMS);
