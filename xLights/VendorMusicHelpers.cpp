@@ -28,7 +28,9 @@ std::string MSLSequenceLyric::GetExt() const
     case MSLTYPE::MSL_LYRIC:
         return "xtiming";
     case MSLTYPE::MSL_SEQUENCE:
-        return "xsq";
+        return "zip";//download sequence are normlly zip files
+    default:
+        break;
 	}
     return wxFileName(_downloadFile.GetFullName()).GetExt();
 }
