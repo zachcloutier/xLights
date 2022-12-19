@@ -402,7 +402,7 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Fire plugin event", 1, s, false, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Start plugin", 1, s, false, false, false, false, false, false, true, true, false));
     _commands.push_back(new Command("Stop plugin", 1, s, false, false, false, false, false, false, true, true, false));
-    _commands.push_back(new Command("Send command to plugin", 3, sss, false, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Send command to plugin", 3, sst, false, false, false, false, false, false, true, true, false));
 
     _commands.push_back(new Command("Add playlist", 1, s, false, false, false, false, false, false, true, true, false));
     _commands.push_back(new Command("Delete playlist", 1, pl, false, false, false, false, false, false, true, true, false));

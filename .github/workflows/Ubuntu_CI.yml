@@ -10,11 +10,16 @@ on:
       - 'cmudict/**'
       - 'colorcurves/**'
       - 'controllers/**'
+      - 'documentation/**'
       - 'download/**'
       - 'images/**'
+      - 'lib/windows/**'
+      - 'lib/windows64/**'
       - 'meshobjects/**'
       - 'palettes/**'
+      - 'scripts/**'
       - 'songs/**'
+      - 'TipOfDay/**'
       - 'valuecurves/**'
       - '*.md'
       - '*.yml'
@@ -30,11 +35,14 @@ on:
       - 'cmudict/**'
       - 'colorcurves/**'
       - 'controllers/**'
+      - 'documentation/**'
       - 'download/**'
       - 'images/**'
       - 'meshobjects/**'
       - 'palettes/**'
+      - 'scripts/**'
       - 'songs/**'
+      - 'TipOfDay/**'
       - 'valuecurves/**'
       - '*.md'
       - '*.yml'
@@ -45,7 +53,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     steps:
     - uses: actions/checkout@v2
